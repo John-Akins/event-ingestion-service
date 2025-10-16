@@ -34,3 +34,6 @@ build/
 
 ### Spring Boot Logs ###
 logs/
+
+### AWS
+/aws/

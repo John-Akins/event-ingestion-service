@@ -1,5 +1,6 @@
 package org.analytics.events.ingest.model;
 
+import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,15 +26,40 @@ import java.util.UUID;
  *     .build();
  * </pre>
  */
+@Entity
+@Table(name = "events")
 public class BaseEvent {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "event_id")
     private UUID eventId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = false)
     private EventType eventType;
+
+    @Column(name = "timestamp", nullable = false)
     private Instant timestamp;
+
+    @Column(name = "user_hash")
     private String userHash;
+
+    @Embedded
     private ClientInfo clientInfo;
+
+    @Embedded
     private SessionInfo session;
+
+    @Embedded
     private Metadata metadata;
-    private Map<String, Object> data;
+
+    @Convert(converter = HashMapConverter.class)
+    @Column(name = "data", columnDefinition = "jsonb") // Use jsonb for PostgreSQL
+    private Map<String, Object> data = new HashMap<>();
+
+    // Default constructor for JPA
+    public BaseEvent() {
+    }
 
     private BaseEvent(Builder builder) {
         this.eventId = builder.eventId;
@@ -50,14 +76,21 @@ public class BaseEvent {
         return new Builder();
     }
 
-    // Getters only to ensure immutability
+    // Getters and Setters for JPA
     public UUID getEventId() { return eventId; }
-    public String getEventType() { return eventType.getValue(); }
+
+    public EventType getEventType() { return eventType; }
+
     public Instant getTimestamp() { return timestamp; }
+
     public String getUserHash() { return userHash; }
+
     public ClientInfo getClientInfo() { return clientInfo; }
+
     public SessionInfo getSession() { return session; }
+
     public Metadata getMetadata() { return metadata; }
+
     public Map<String, Object> getData() { return new HashMap<>(data); }
 
     public static class Builder {
