@@ -5,6 +5,12 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 
 /**
  * Represents a base event for analytics ingestion with immutable data.
@@ -30,15 +36,14 @@ import java.util.UUID;
 @Table(name = "events")
 public class BaseEvent {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "event_id")
+    @Column(name = "id")
     private UUID eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
     private EventType eventType;
 
-    @Column(name = "timestamp", nullable = false)
+    @Column(name = "event_timestamp", nullable = false)
     private Instant timestamp;
 
     @Column(name = "user_hash")
@@ -48,13 +53,18 @@ public class BaseEvent {
     private ClientInfo clientInfo;
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "id", column = @Column(name = "session_id")),
+        @AttributeOverride(name = "startTime", column = @Column(name = "session_start_time"))
+    })
     private SessionInfo session;
 
     @Embedded
     private Metadata metadata;
 
     @Convert(converter = HashMapConverter.class)
-    @Column(name = "data", columnDefinition = "jsonb") // Use jsonb for PostgreSQL
+    @Column(name = "data")
+    @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> data = new HashMap<>();
 
     // Default constructor for JPA
@@ -105,6 +115,11 @@ public class BaseEvent {
 
         public Builder eventType(EventType eventType) {
             this.eventType = eventType;
+            return this;
+        }
+
+        public Builder timestamp(Instant timestamp) {
+            this.timestamp = timestamp;
             return this;
         }
 
