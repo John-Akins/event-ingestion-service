@@ -10,11 +10,7 @@ services:
       - 8.8.8.8 # dns resolution issue fix
     environment:
       SPRING_PROFILES_ACTIVE: $SPRING_PROFILES_ACTIVE
-      AWS_RDS_HOSTNAME: "eis-postgres-db.cdsoiuag45an.us-east-2.rds.amazonaws.com"
-      AWS_RDS_USERNAME: $TF_VAR_rdsconfig_username
-      AWS_RDS_PASSWORD: $TF_VAR_rdsconfig_password
-      AWS_RDS_DB_NAME: $TF_VAR_rdsconfig_db_name
-      AWS_RDS_PORT: 5432		
+      AWS_RDS_PORT: 5432
       DATABASE_URL: "jdbc:postgresql://${AWS_RDS_HOSTNAME}:${AWS_RDS_PORT}/${AWS_RDS_DB_NAME}"
       DATABASE_USERNAME: "$AWS_RDS_USERNAME"
       DATABASE_PASSWORD: "$AWS_RDS_PASSWORD"
