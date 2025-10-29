@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import org.analytics.events.ingest.dto.EventRequestDTO;
 import org.analytics.events.ingest.model.EventType;
+import org.analytics.events.ingest.service.EventService;
 
 @WebMvcTest(IngestEventController.class)
 @DisplayName("App analytics ingestion requests")
@@ -25,6 +27,9 @@ public class IngestEventControllerTests {
 
         @Autowired
         private MockMvc mockMvc;
+
+        @MockitoBean
+        private EventService eventService;
 
         @Nested
         @DisplayName("Given an empty request")
