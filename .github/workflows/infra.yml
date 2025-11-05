@@ -23,15 +23,15 @@ jobs:
           TF_VAR_rdsconfig_INSTANCE_CLASS: ${{ vars.TF_VAR_RDSCONFIG_INSTANCE_CLASS }}
           TF_VAR_rdsconfig_storage_type: ${{ vars.TF_VAR_RDSCONFIG_STORAGE_TYPE }}
           TF_VAR_rdsconfig_engine: ${{ vars.TF_VAR_RDSCONFIG_engine }}
-          TF_VAR_SUBNET_A: ${{ vars.TF_VAR_SUBNET_A }}
-          TF_VAR_SUBNET_B: ${{ vars.TF_VAR_SUBNET_B }}
+          TF_VAR_subnet_a: ${{ vars.TF_VAR_SUBNET_A }}
+          TF_VAR_subnet_b: ${{ vars.TF_VAR_SUBNET_B }}
           # Secrets
           TF_VAR_rdsconfig_identifier: ${{ secrets.TF_VAR_RDSCONFIG_IDENTIFIER }}
           TF_VAR_rdsconfig_db_name: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
           TF_VAR_rdsconfig_username: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
           TF_VAR_rdsconfig_password: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }} 
           TF_VAR_ssh_private_key: ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}
-          TF_VAR_EC2_AMI: ${{ secrets.TF_VAR_ec2_ami }}
+          TF_VAR_ec2_ami: ${{ secrets.TF_VAR_EC2_AMI }}
 
         steps:
 
