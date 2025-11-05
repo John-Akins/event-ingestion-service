@@ -27,14 +27,9 @@ jobs:
         steps:
 
           - name: load secrets as environment vars
-            uses: infovista-opensource/vars-to-env-action@v1
+            uses: infovista-opensource/vars-to-env-action@v2
             with:
               secrets: ${{ toJSON(secrets) }}
-
-          - name: load variables as environment vars
-            uses: infovista-opensource/vars-to-env-action@v1
-            with:
-              variables: ${{ toJSON(vars) }}
 
           - name: checkout
             uses: actions/checkout@v4
