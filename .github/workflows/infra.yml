@@ -1,7 +1,7 @@
 name: Infra Provisioning
 
 on:
-    push:
+    pull_request:
       branches: [main]
 
 jobs:
@@ -22,7 +22,6 @@ jobs:
           TF_VAR_rdsconfig_engine_version: ${{ vars.TF_VAR_RDSCONFIG_ENGINE_VERSION }}
           TF_VAR_rdsconfig_INSTANCE_CLASS: ${{ vars.TF_VAR_RDSCONFIG_INSTANCE_CLASS }}
           TF_VAR_rdsconfig_storage_type: ${{ vars.TF_VAR_RDSCONFIG_STORAGE_TYPE }}
-          TF_VAR_rdsconfig_engine: ${{ vars.TF_VAR_RDSCONFIG_engine }}
           TF_VAR_rdsconfig_engine: ${{ vars.TF_VAR_RDSCONFIG_engine }}
           TF_VAR_SUBNET_A: ${{ vars.TF_VAR_SUBNET_A }}
           TF_VAR_SUBNET_B: ${{ vars.TF_VAR_SUBNET_B }}
