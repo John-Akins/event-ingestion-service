@@ -1,0 +1,65 @@
+name: Infra Provisioning
+
+on:
+    push:
+      branches: [main]
+
+jobs:
+    provision_infra:
+        runs-on: ubuntu-latest
+
+        defaults:
+          run:
+            working-directory: "infra"
+
+        env:
+          TF_VAR_REGION: "us-east-2"
+          TF_VAR_DEFAULT_VPC: "vpc-0935accf9e6ac5c67"
+          TF_VAR_EC2_INSTANCE_TYPE: "t2.micro"
+          TF_VAR_EC2_IP_ADDRESS: "3.22.241.145"
+          TF_VAR_RDSCONFIG_ALLOCATED_STORAGE: "20"
+          TF_VAR_RDSCONFIG_ENGINE_VERSION: "16.6"
+          TF_VAR_RDSCONFIG_INSTANCE_CLASS: "db.t3.micro"
+          TF_VAR_RDSCONFIG_STORAGE_TYPE: "gp2"
+          TF_VAR_SUBNET_A: "subnet-0bfaee8bdd10fff39"
+          TF_VAR_SUBNET_B: "subnet-0a7b79e034ea771b7"
+
+        steps:
+
+          - name: load secrets as environment vars
+            uses: infovista-opensource/vars-to-env-action@v1
+            with:
+              secrets: ${{ toJSON(secrets) }}
+
+          - name: load variables as environment vars
+            uses: infovista-opensource/vars-to-env-action@v1
+            with:
+              variables: ${{ toJSON(vars) }}
+
+          - name: checkout
+            uses: actions/checkout@v4
+            with:
+              sparse-checkout: "infra"
+              sparse-checkout-cone-mode: false
+
+          - name: Configure AWS Credentials # not needed for tf, just passed those cred as env vars
+            uses: aws-actions/configure-aws-credentials@v5.0.0
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: $TF_VAR_REGION
+
+          - name: terraform setup
+            uses: hashicorp/setup-terraform@v3
+
+          - name: initial terraform
+            run: terraform init
+
+          - name: terraform plan
+            run: terraform plan -no-color
+
+          - name: terraform apply
+            run: terraform apply -auto-approve
+
+          # - name: terraform destroy
+          #   run: terraform apply -destroy -auto-approve
