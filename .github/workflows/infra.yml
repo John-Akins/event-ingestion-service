@@ -1,14 +1,9 @@
 name: Infra provisioning
 
 on:
-  workflow_run:
-    workflows: [App CI test]
-    types:
-      - completed
-    branches: [main]
-    # pull_request: 
+    pull_request: 
     # push:
-      # branches: [main]
+      branches: [main]
 
 jobs:
     provision-infra:
