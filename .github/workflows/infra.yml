@@ -5,6 +5,7 @@ on:
     workflows: [App CI test]
     types:
       - completed
+    branches: [chore/infra-pipeline]
     # pull_request: 
     # push:
       # branches: [main]

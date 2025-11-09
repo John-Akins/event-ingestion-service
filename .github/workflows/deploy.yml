@@ -3,6 +3,7 @@ name: Build and deploy api
 on: 
   workflow_run:
     workflows: [Infra provisioning]
+    branches: [chore/infra-pipeline]    
     types:
       - completed
   # pull_request: 

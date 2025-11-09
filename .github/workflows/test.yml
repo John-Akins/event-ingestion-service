@@ -1,8 +1,8 @@
 name: App CI test
 
-on: 
-    pull_request: 
-    # push:
+on:
+    pull_request:
+    push:
         branches: [main]
 
 jobs: 
