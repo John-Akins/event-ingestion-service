@@ -35,8 +35,8 @@ build/
 ### Spring Boot Logs ###
 logs/
 
-### AWS
-/aws/
+### Environment
+*.env
 
 # Terraform
 .terraform/
