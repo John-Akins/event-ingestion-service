@@ -1,11 +1,16 @@
-name: Infra Provisioning
+name: Infra provisioning
 
 on:
-    pull_request:
-      branches: [main]
+  workflow_run:
+    workflows: [App CI test]
+    types:
+      - completed
+    # pull_request: 
+    # push:
+      # branches: [main]
 
 jobs:
-    provision_infra:
+    provision-infra:
         runs-on: ubuntu-latest
 
         defaults:
@@ -41,7 +46,7 @@ jobs:
               sparse-checkout: "infra"
               sparse-checkout-cone-mode: false
 
-          - name: Configure AWS Credentials # not needed for tf, just passed those cred as env vars
+          - name: configure AWS credentials # not needed for tf, just passed those cred as env vars
             uses: aws-actions/configure-aws-credentials@v5.0.0
             with:
               aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

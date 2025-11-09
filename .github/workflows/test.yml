@@ -1,0 +1,27 @@
+name: App CI test
+
+on: 
+    pull_request: 
+    # push:
+        branches: [main]
+
+jobs: 
+    build-test:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Set up Java
+          uses: actions/setup-java@v4
+          with: 
+            distribution: 'temurin'
+            java-version: 21
+            cache: 'maven'
+
+        - name: Build with Maven
+          run: mvn clean install -DskipTests
+
+        - name: Run tests
+          run: mvn test

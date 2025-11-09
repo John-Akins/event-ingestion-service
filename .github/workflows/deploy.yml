@@ -1,0 +1,71 @@
+name: Build and deploy api
+
+on: 
+  workflow_run:
+    workflows: [Infra provisioning]
+    types:
+      - completed
+  # pull_request: 
+  #   push:
+  #       branches: [main]
+
+jobs:
+    on-success:
+      runs-on: ubuntu-latest
+      if: ${{ github.event.workflow_run.conclusion == 'success' }}
+      steps:
+        - run: echo 'infra provisioning workflow passed'
+        - run: echo "GH_BRANCH=$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV        
+
+    on-failure:
+        runs-on: ubuntu-latest
+        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+        steps:
+          - run: echo 'infra provisioning workflow failed' 
+
+    build:
+        name: Build docker image
+        runs-on: ubuntu-latest
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+        env:
+          TAG: johnakins/n7b3v9c1x5z8a2-analytics-repo:event-ingestion-service-${{ vars.GH_BRANCH }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Java
+              uses: actions/setup-java@v4
+              with: 
+                java-version: 21
+                distribution: 'temurin'
+                cache: maven
+
+            - name: Build app
+              run: |
+                     mvn clean
+                     mvn -B package
+
+            - name: Build docker image
+              uses: docker/build-push-action@v4
+              with: 
+                context: .
+                dockerfile: Dockerfile
+                push: false
+                tags: ${{ env.TAG }}
+                # Also tag with commit hash for traceability: myuser/myimage:${{ github.sha }}
+
+            - name: Login to docker hub
+              uses: docker/login-action@v1
+              with:
+                username: ${{ secrets.DOCKER_HUB_USERNAME }}
+                password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+            - name: Push docker image to docker hub
+              uses: docker/build-push-action@v4
+              with: 
+                context: .
+                dockerfile: Dockerfile
+                push: true
+                tags: ${{ env.TAG }}
