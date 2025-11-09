@@ -31,6 +31,7 @@ jobs:
                     IMAGE_TAG="johnakins/n7b3v9c1x5z8a2-analytics-repo:event-ingestion-service-${TAG}"
                     echo "TAG=${TAG}" >> $GITHUB_ENV
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+                    echo "::add-mask::${IMAGE_TAG}"
                     echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
  
             - name: Build with maven
@@ -40,9 +41,9 @@ jobs:
             
             - name: Build docker image
               uses: docker/build-push-action@v4
-              with: 
+              with:
                     context: .
-                    dockerfile: Dockerfile
+                    file: Dockerfile
                     push: false
                     tags: ${{ env.IMAGE_TAG }}
 
@@ -54,9 +55,9 @@ jobs:
 
             - name: Publish to docker hub
               uses: docker/build-push-action@v4
-              with: 
+              with:
                     context: .
-                    dockerfile: Dockerfile
+                    file: Dockerfile
                     push: true
                     tags: ${{ env.IMAGE_TAG }}
 
@@ -123,7 +124,9 @@ jobs:
             id: terraform-outputs
             run: |
               echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> $GITHUB_OUTPUT
-              echo "rds-endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
+              value=$(terraform output -raw rds_endpoint)
+              echo "::add-mask::$value"
+              echo "rds-endpoint=$value" >> $GITHUB_OUTPUT
 
     deploy-app:
         name: Deploy docker app to EC2 instance
