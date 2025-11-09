@@ -135,7 +135,7 @@ jobs:
               uses: actions/checkout@v4
 
             - name: Debug output access
-              run: echo  ${{ steps.terraform-outputs.outputs.rds-endpoint }}
+              run: echo  ${{ needs.infra-provisioning.outputs.rds-endpoint }}
 
             - name: Deploy to EC2
               run: |
