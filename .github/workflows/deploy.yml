@@ -6,23 +6,9 @@ on:
       branches: [main]
 
 jobs:
-    on-success:
-      runs-on: ubuntu-latest
-      if: ${{ github.event.workflow_run.conclusion == 'success' }}
-      steps:
-        - run: echo 'infra provisioning workflow passed'
-        - run: echo "GH_BRANCH=$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV        
-
-    on-failure:
-        runs-on: ubuntu-latest
-        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-        steps:
-          - run: echo 'infra provisioning workflow failed' 
-
     build:
         name: Build docker image
         runs-on: ubuntu-latest
-        if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
         env:
           TAG: johnakins/n7b3v9c1x5z8a2-analytics-repo:event-ingestion-service-${{ vars.GH_BRANCH }}
