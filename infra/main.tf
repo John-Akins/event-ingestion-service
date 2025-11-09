@@ -91,3 +91,7 @@ resource "aws_instance" "eis_ec2" {
 output "eis_ec2_ip" {
   value = aws_instance.eis_ec2.public_ip
 }
+
+output "rds_endpoint" {
+  value = aws_db_instance.primary.endpoint
+}
