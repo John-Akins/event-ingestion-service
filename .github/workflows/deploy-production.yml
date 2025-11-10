@@ -42,6 +42,7 @@ jobs:
                     echo "TAG=${TAG}" >> $GITHUB_ENV
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
+                    aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
                     echo "image-tag-key=$IMAGE_TAG_KEY" >> $GITHUB_OUTPUT
  
@@ -141,6 +142,7 @@ jobs:
               echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> "$GITHUB_OUTPUT"
               value=$(terraform output -raw rds_endpoint)
               RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
+              aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
               aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
               echo "rds-endpoint-key=$RDS_ENDPOINT_KEY" >> "$GITHUB_OUTPUT"
 
@@ -220,3 +222,7 @@ jobs:
                   docker compose up -d
                   echo "Deployment completed successfully"
                 EOF
+
+                # Clean up secrets
+                aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery
+                aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery
