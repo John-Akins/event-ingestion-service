@@ -174,8 +174,8 @@ jobs:
                 RDS_ENDPOINT_KEY=${{ needs.infra-provisioning.outputs.rds-endpoint-key }}
                 IMAGE_TAG_KEY=${{ needs.build-app.outputs.image-tag-key }}
                 # Retrieve Secret Values
-                IMAGE_TAG=$(aws secrets manager get-secret-value --secret-id "$IMAGE_TAG_KEY" --query SecretString --output text )
-                RDS_ENDPOINT=$(aws secrets manager get-secret-value --secret-id  "$RDS_ENDPOINT_KEY" --query SecretString --output text)
+                IMAGE_TAG=$(aws secretsmanager get-secret-value --secret-id "$IMAGE_TAG_KEY" --query SecretString --output text )
+                RDS_ENDPOINT=$(aws secretsmanager get-secret-value --secret-id  "$RDS_ENDPOINT_KEY" --query SecretString --output text)
 
                 echo "Deploying to EC2 instance at: ${{ needs.infra-provisioning.outputs.ec2-ip }}"
                 echo "Using RDS endpoint: ::add-mask::$RDS_ENDPOINT"
