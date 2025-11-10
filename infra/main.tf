@@ -75,7 +75,7 @@ resource "aws_db_instance" "primary" {
 
 resource "aws_key_pair" "eis_ec2_key" {
   key_name   = "eis-ec2-key"
-  public_key = var.ssh_private_key
+  public_key = var.ssh_public_key
 }
 
 resource "aws_instance" "eis_ec2" {
