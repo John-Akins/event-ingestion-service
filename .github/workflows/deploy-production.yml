@@ -185,7 +185,7 @@ jobs:
 
                 # Setup SSH key for secure access to EC2
                 mkdir -p ~/.ssh
-                echo "${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/id_rsa
+                echo -e "${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
                 chmod 600 ~/.ssh/id_rsa
                 ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
@@ -208,9 +208,9 @@ jobs:
                   # Create environment file using here string
                   cat > .env <<< "SPRING_PROFILES_ACTIVE=prod
                 AWS_RDS_HOSTNAME=$RDS_ENDPOINT
-                AWS_RDS_USERNAME=${{ secrets.TF_VAR_RDSCONFIG_USERNAME }} | base64 -d 
-                AWS_RDS_PASSWORD=${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }} | base64 -d 
-                AWS_RDS_DB_NAME=${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }} | base64 -d 
+                AWS_RDS_USERNAME=${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
+                AWS_RDS_PASSWORD=${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
+                AWS_RDS_DB_NAME=${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
                 AWS_RDS_PORT=5432"
 
                   # Pull the latest Docker image
