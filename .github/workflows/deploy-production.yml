@@ -151,6 +151,9 @@ jobs:
         runs-on: ubuntu-latest
         needs: [build-app, infra-provisioning]
 
+        env:
+          ssh_private_key: ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}         
+
         permissions:
             id-token: write 
             contents: read           
@@ -185,7 +188,7 @@ jobs:
 
                 # Setup SSH key for secure access to EC2
                 mkdir -p ~/.ssh
-                echo -e "${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+                echo -e "${{ env.ssh_private_key }}" > ~/.ssh/id_rsa
                 chmod 600 ~/.ssh/id_rsa
                 ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
