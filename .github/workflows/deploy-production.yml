@@ -190,7 +190,7 @@ jobs:
                 ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
                 # SSH access to EC2 instance
-                ssh -T ~/.ssh/id_rsa ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} << EOF
+                ssh -i ~/.ssh/id_rsa ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} << EOF
                   echo "Connected to EC2 instance"
                   echo "Using Docker image: $IMAGE_TAG"
                   echo "RDS endpoint: $RDS_ENDPOINT"
