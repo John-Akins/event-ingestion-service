@@ -43,7 +43,7 @@ jobs:
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
-                    echo "image-tag-key" >> $GITHUB_OUTPUT
+                    echo "image-tag-key=$IMAGE_TAG_KEY" >> $GITHUB_OUTPUT
  
             - name: Build with maven
               run: |
@@ -203,14 +203,14 @@ jobs:
 
                   # Create environment file using here string
                   cat > .env <<< "SPRING_PROFILES_ACTIVE=prod
-                AWS_RDS_HOSTNAME=${{ needs.infra-provisioning.outputs.rds-endpoint }}
+                AWS_RDS_HOSTNAME=$RDS_ENDPOINT
                 AWS_RDS_USERNAME=${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
                 AWS_RDS_PASSWORD=${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
                 AWS_RDS_DB_NAME=${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
                 AWS_RDS_PORT=5432"
 
                   # Pull the latest Docker image
-                  docker pull ${{ needs.build-app.outputs.image-tag }}
+                  docker pull $IMAGE_TAG
 
                   # Stop and remove existing container if running
                   docker stop event-ingestion-service || true
