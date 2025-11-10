@@ -13,6 +13,10 @@ jobs:
         outputs:
           image-tag-key: ${{ steps.generate-tag.outputs.image-tag-key }}
 
+        permissions:
+            id-token: write 
+            contents: read           
+
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -72,6 +76,10 @@ jobs:
         name: Provision AWS resources with terraform
         runs-on: ubuntu-latest
         needs: build-app
+
+        permissions:
+            id-token: write 
+            contents: read           
 
         outputs:
           ec2-ip: ${{ steps.terraform-outputs.outputs.ec2-ip }}
@@ -140,6 +148,10 @@ jobs:
         name: Deploy docker app to EC2 instance
         runs-on: ubuntu-latest
         needs: [build-app, infra-provisioning]
+
+        permissions:
+            id-token: write 
+            contents: read           
 
         steps:
             - name: Checkout code
