@@ -190,6 +190,7 @@ jobs:
                 mkdir -p ~/.ssh
                 printf "%s" "${{ env.ssh_private_key }}" > ~/.ssh/id_rsa
                 sed -i 's/\r$//' ~/.ssh/id_rsa
+                echo "" >> /home/runner/.ssh/id_rsa.
                 chmod 600 ~/.ssh/id_rsa
                 eval "$(ssh-agent -s)"
                 ssh-add ~/.ssh/id_rsa                
