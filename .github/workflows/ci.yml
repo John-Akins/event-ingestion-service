@@ -1,35 +1,50 @@
-name: CI Pipeline
+name: dummy
 
-on:
-    pull_request:
-    # push:
-        branches: [main]
+on: 
+    push:
+      branches: [main]
 
 jobs:
-    build-test:
-        name: Build and test application
-        runs-on: ubuntu-latest
+  dummy:
+    name: dummy
+    runs-on: ubuntu-latest
 
-        steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+    steps:
+        - name: dummy
+          run: echo "dummy"
 
-        - name: Set up Java
-          uses: actions/setup-java@v4
-          with:
-            distribution: 'temurin'
-            java-version: 21
-            cache: 'maven'
+# name: CI Pipeline
 
-        - name: Build with Maven
-          run: mvn clean install -DskipTests
+# on:
+#     pull_request:
+#     # push:
+#         branches: [main]
 
-        - name: Run tests
-          run: mvn test
+# jobs:
+#     build-test:
+#         name: Build and test application
+#         runs-on: ubuntu-latest
 
-        - name: Upload test artifacts on failure
-          if: failure()
-          uses: actions/upload-artifact@v4
-          with:
-            name: test-results
-            path: target/surefire-reports/
+#         steps:
+#         - name: Checkout code
+#           uses: actions/checkout@v4
+
+#         - name: Set up Java
+#           uses: actions/setup-java@v4
+#           with:
+#             distribution: 'temurin'
+#             java-version: 21
+#             cache: 'maven'
+
+#         - name: Build with Maven
+#           run: mvn clean install -DskipTests
+
+#         - name: Run tests
+#           run: mvn test
+
+#         - name: Upload test artifacts on failure
+#           if: failure()
+#           uses: actions/upload-artifact@v4
+#           with:
+#             name: test-results
+#             path: target/surefire-reports/
