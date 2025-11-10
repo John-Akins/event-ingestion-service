@@ -107,7 +107,7 @@ jobs:
           TF_VAR_rdsconfig_db_name: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
           TF_VAR_rdsconfig_username: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
           TF_VAR_rdsconfig_password: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }} 
-          TF_VAR_ssh_public_key: ${{ secrets.TF_VAR_SSH_PUBLIC_KEY }}
+          TF_VAR_ssh_private_key: ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}
           TF_VAR_ec2_ami: ${{ secrets.TF_VAR_EC2_AMI }}
 
         steps:
@@ -152,7 +152,7 @@ jobs:
         needs: [build-app, infra-provisioning]
 
         env:
-          ssh_private_key: ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}         
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}         
 
         permissions:
             id-token: write 
