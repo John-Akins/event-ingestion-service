@@ -188,8 +188,11 @@ jobs:
 
                 # Setup SSH key for secure access to EC2
                 mkdir -p ~/.ssh
-                echo -e "${{ env.ssh_private_key }}" > ~/.ssh/id_rsa
+                printf "%s" "${{ env.ssh_private_key }}" > ~/.ssh/id_rsa
+                sed -i 's/\r$//' ~/.ssh/id_rsa
                 chmod 600 ~/.ssh/id_rsa
+                eval "$(ssh-agent -s)"
+                ssh-add ~/.ssh/id_rsa                
                 ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
                 # SSH access to EC2 instance
