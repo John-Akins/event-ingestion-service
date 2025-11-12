@@ -53,7 +53,7 @@ jobs:
                 name: image-tag-artifact
                 path: image-tag-key.txt
                 retention-days: 1
-                if-no-file-found: error
+                if-no-files-found: error
 
             - name: Build with maven
               run: |
@@ -175,7 +175,7 @@ jobs:
               name: rds-endpoint-artifact
               path: infra/rds-endpoint-key.txt
               retention-days: 1
-              if-no-file-found: error
+              if-no-files-found: error
 
           - name: Clean up secrets on infra failure
             if: failure()
@@ -214,6 +214,11 @@ jobs:
               uses: webfactory/ssh-agent@v0.9.0
               with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+            - name: Add known host
+              run: |
+                mkdir -p ~/.ssh
+                ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
             - name: artifacts
               uses: actions/download-artifact@v4
