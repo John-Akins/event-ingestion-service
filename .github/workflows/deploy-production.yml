@@ -172,8 +172,8 @@ jobs:
               value=$(terraform output -raw rds_endpoint)
               RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
               aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
-              echo "$RDS_ENDPOINT_KEY"
               echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
+              cat rds-endpoint-key.txt
 
           - name: Clean up secrets on infra failure
             if: failure()
@@ -219,6 +219,7 @@ jobs:
             - name: Retrieve Secrets, AWS SecretsManager
               run: |
                 # Validate key files exist and are not empty
+                cat rds-endpoint-artifact/rds-endpoint-key.txt
                 if [ ! -f image-tag-artifact/image-tag-key.txt ] || [ -z "$(cat image-tag-artifact/image-tag-key.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
                 if [ ! -f rds-endpoint-artifact/rds-endpoint-key.txt ] || [ -z "$(cat rds-endpoint-artifact/rds-endpoint-key.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
 
