@@ -44,17 +44,17 @@ jobs:
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
                     # aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
-                    echo "image-tag-key=$IMAGE_TAG_KEY" >> $GITHUB_OUTPUT
+                    echo "image-tag-key=$IMAGE_TAG_KEY" >> "$GITHUB_OUTPUT"
                     echo "$IMAGE_TAG_KEY" > image-tag.txt
 
             - name: Upload secret manager keys artifact
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                name: secret-manager-keys
+                name: docker-image-keys
                 path: image-tag.txt
                 retention-days: 1
- 
+
             - name: Build with maven
               run: |
                     mvn clean
@@ -168,7 +168,7 @@ jobs:
             if: always()
             uses: actions/upload-artifact@v4
             with:
-              name: secret-manager-keys
+              name: rds-secret-keys
               path: rds-endpoint.txt
               retention-days: 1
 
@@ -176,14 +176,14 @@ jobs:
             if: always()
             uses: actions/download-artifact@v4
             with:
-              name: secret-manager-keys
-              path: secret-manager-keys
+              name: rds-secret-keys
+              path: rds-secret-keys
                 
           - name: Clean up secrets on infra failure
             if: failure()
             run: |
-              if [ -f secret-manager-keys/image-tag.txt ]; then
-                IMAGE_TAG_KEY=$(cat secret-manager-keys/image-tag.txt)
+              if [ -f docker-image-keys/image-tag.txt ]; then
+                IMAGE_TAG_KEY=$(cat docker-image-keys/image-tag.txt)
                 aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
               fi
               if [ -v $RDS_ENDPOINT_KEY ]; then
@@ -223,18 +223,18 @@ jobs:
             - name: Download secret manager keys
               uses: actions/download-artifact@v4
               with:
-                name: secret-manager-keys
-                path: secret-manager-keys
+                name: rds-secret-keys
+                path: rds-secret-keys
 
             - name: Retrieve Secrets, AWS SecretsManager
               run: |
                 # Validate key files exist and are not empty
-                if [ ! -f secret-manager-keys/rds-endpoint.txt ] || [ -z "$(cat secret-manager-keys/rds-endpoint.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
-                if [ ! -f secret-manager-keys/image-tag.txt ] || [ -z "$(cat secret-manager-keys/image-tag.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
+                if [ ! -f rds-secret-keys/rds-endpoint.txt ] || [ -z "$(cat rds-secret-keys/rds-endpoint.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
+                if [ ! -f docker-image-keys/image-tag.txt ] || [ -z "$(cat docker-image-keys/image-tag.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
 
                 # Retrieve Secret Keys from artifacts
-                RDS_ENDPOINT_KEY=$(cat secret-manager-keys/rds-endpoint.txt)
-                IMAGE_TAG_KEY=$(cat secret-manager-keys/image-tag.txt)
+                RDS_ENDPOINT_KEY=$(cat rds-secret-keys/rds-endpoint.txt)
+                IMAGE_TAG_KEY=$(cat docker-image-keys/image-tag.txt)
 
                 # Retrieve Secret Values
                 IMAGE_TAG=$(aws secretsmanager get-secret-value --secret-id "$IMAGE_TAG_KEY" --query SecretString --output text )
@@ -291,18 +291,18 @@ jobs:
               if: always()
               uses: actions/download-artifact@v4
               with:
-                name: secret-manager-keys
-                path: secret-manager-keys
+                name: rds-secret-keys
+                path: rds-secret-keys
                   
             - name: Clean up secrets on deploy failure
               if: always()
               run: |
-                if [ -f secret-manager-keys/image-tag.txt ]; then
-                  IMAGE_TAG_KEY=$(cat secret-manager-keys/image-tag.txt)
+                if [ -f docker-image-keys/image-tag.txt ]; then
+                  IMAGE_TAG_KEY=$(cat docker-image-keys/image-tag.txt)
                   aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                 fi
 
-                if [ -f secret-manager-keys/rds-endpoint.txt ]; then
-                  RDS_ENDPOINT_KEY=$(cat secret-manager-keys/rds-endpoint.txt)
+                if [ -f rds-secret-keys/rds-endpoint.txt ]; then
+                  RDS_ENDPOINT_KEY=$(cat rds-secret-keys/rds-endpoint.txt)
                   aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
                 fi
