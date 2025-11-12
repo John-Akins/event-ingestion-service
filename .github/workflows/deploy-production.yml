@@ -165,7 +165,7 @@ jobs:
               RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
               aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
               echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
-              log "rds-endpoint.txt file"
+              echo "rds-endpoint.txt file:"
               cat rds-endpoint-key.txt
 
           - name: Upload rds endpoint artifact
