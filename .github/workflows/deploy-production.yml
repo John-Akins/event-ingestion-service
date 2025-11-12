@@ -154,14 +154,8 @@ jobs:
           - name: Terraform apply
             run: terraform apply -auto-approve
 
-          - name: Get terraform outputs
-            id: terraform-outputs
-            run: |
-              echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> "$GITHUB_OUTPUT"
-              value=$(terraform output -raw rds_endpoint)
-              RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
-              aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
-              echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
+          - name: artifacts
+            uses: actions/download-artifact@v4            
 
           - name: Upload rds endpoint artifact
             if: always()
@@ -170,6 +164,16 @@ jobs:
               name: rds-endpoint-artifact
               path: rds-endpoint-key.txt
               retention-days: 1
+
+          - name: Get terraform outputs
+            id: terraform-outputs
+            run: |
+              echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> "$GITHUB_OUTPUT"
+              value=$(terraform output -raw rds_endpoint)
+              RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
+              aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
+              echo "$RDS_ENDPOINT_KEY"
+              echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
 
           - name: Clean up secrets on infra failure
             if: failure()
