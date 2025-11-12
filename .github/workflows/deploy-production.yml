@@ -42,7 +42,8 @@ jobs:
                     echo "TAG=${TAG}" >> $GITHUB_ENV
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
-                    # aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
+                    # 
+                    aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
                     echo "$IMAGE_TAG_KEY" > image-tag-key.txt
 
@@ -211,7 +212,7 @@ jobs:
             - name: Setup SSH Key
               run: |
                 mkdir -p ~/.ssh
-                echo "${{ secrets.TF_VAR_SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa
+                echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
                 chmod 600 ~/.ssh/id_rsa
                 ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
