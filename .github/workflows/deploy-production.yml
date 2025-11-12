@@ -246,7 +246,7 @@ jobs:
                 if [ -n "$IMAGE_TAG" ]; then echo "::add-mask::$IMAGE_TAG"; fi
 
                 # SSH access to EC2 instance
-                ssh ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} << EOF
+                ssh ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} /bin/bash << EOF
                   echo "Connected to EC2 instance"
 
                   # Setup docker
