@@ -51,7 +51,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                name: docker-image-keys
+                name: docker-secret-keys
                 path: image-tag.txt
                 retention-days: 1
 
@@ -182,8 +182,8 @@ jobs:
           - name: Clean up secrets on infra failure
             if: failure()
             run: |
-              if [ -f docker-image-keys/image-tag.txt ]; then
-                IMAGE_TAG_KEY=$(cat docker-image-keys/image-tag.txt)
+              if [ -f docker-secret-keys/image-tag.txt ]; then
+                IMAGE_TAG_KEY=$(cat docker-secret-keys/image-tag.txt)
                 aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
               fi
               if [ -v $RDS_ENDPOINT_KEY ]; then
@@ -230,11 +230,11 @@ jobs:
               run: |
                 # Validate key files exist and are not empty
                 if [ ! -f rds-secret-keys/rds-endpoint.txt ] || [ -z "$(cat rds-secret-keys/rds-endpoint.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
-                if [ ! -f docker-image-keys/image-tag.txt ] || [ -z "$(cat docker-image-keys/image-tag.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
+                if [ ! -f docker-secret-keys/image-tag.txt ] || [ -z "$(cat docker-secret-keys/image-tag.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
 
                 # Retrieve Secret Keys from artifacts
                 RDS_ENDPOINT_KEY=$(cat rds-secret-keys/rds-endpoint.txt)
-                IMAGE_TAG_KEY=$(cat docker-image-keys/image-tag.txt)
+                IMAGE_TAG_KEY=$(cat docker-secret-keys/image-tag.txt)
 
                 # Retrieve Secret Values
                 IMAGE_TAG=$(aws secretsmanager get-secret-value --secret-id "$IMAGE_TAG_KEY" --query SecretString --output text )
@@ -297,8 +297,8 @@ jobs:
             - name: Clean up secrets on deploy failure
               if: always()
               run: |
-                if [ -f docker-image-keys/image-tag.txt ]; then
-                  IMAGE_TAG_KEY=$(cat docker-image-keys/image-tag.txt)
+                if [ -f docker-secret-keys/image-tag.txt ]; then
+                  IMAGE_TAG_KEY=$(cat docker-secret-keys/image-tag.txt)
                   aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                 fi
 
