@@ -173,7 +173,7 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
               name: rds-endpoint-artifact
-              path: rds-endpoint-key.txt
+              path: infra/rds-endpoint-key.txt
               retention-days: 1
               if-no-file-found: error
 
