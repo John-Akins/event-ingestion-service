@@ -230,7 +230,7 @@ jobs:
                 echo "::add-mask::$IMAGE_TAG"
 
                 # SSH access to EC2 instance
-                ssh -i ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} << EOF
+                ssh ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} << EOF
                   echo "Connected to EC2 instance"
 
                   # Setup docker
@@ -277,7 +277,7 @@ jobs:
     cleanup:
         name: Cleanup Secrets
         runs-on: ubuntu-latest
-        if: always()
+        if: failure() || success() 
 
         permissions:
             id-token: write
