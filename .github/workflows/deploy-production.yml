@@ -176,8 +176,8 @@ jobs:
             if: always()
             uses: actions/download-artifact@v4
             with:
-              name: rds-secret-keys
-              path: rds-secret-keys
+              name: docker-secret-keys
+              path: docker-secret-keys
                 
           - name: Clean up secrets on infra failure
             if: failure()
