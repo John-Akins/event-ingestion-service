@@ -165,8 +165,6 @@ jobs:
               RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
               aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
               echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
-              echo "rds-endpoint.txt file:"
-              cat rds-endpoint-key.txt
 
           - name: Upload rds endpoint artifact
             if: always()
@@ -210,14 +208,11 @@ jobs:
                 role-to-assume: ${{ secrets.AWS_SECRET_MANAGER_ROLE_ARN }}
                 aws-region: ${{ vars.TF_VAR_REGION }}
 
-            - name: Setup SSH Agent
-              uses: webfactory/ssh-agent@v0.9.0
-              with:
-                ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-            - name: Add known host
+            - name: Setup SSH Key
               run: |
                 mkdir -p ~/.ssh
+                echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+                chmod 600 ~/.ssh/id_rsa
                 ssh-keyscan -H ${{ needs.infra-provisioning.outputs.ec2-ip }} >> ~/.ssh/known_hosts
 
             - name: artifacts
@@ -226,7 +221,6 @@ jobs:
             - name: Retrieve Secrets, AWS SecretsManager
               run: |
                 # Validate key files exist and are not empty
-                cat rds-endpoint-artifact/rds-endpoint-key.txt
                 if [ ! -f image-tag-artifact/image-tag-key.txt ] || [ -z "$(cat image-tag-artifact/image-tag-key.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
                 if [ ! -f rds-endpoint-artifact/rds-endpoint-key.txt ] || [ -z "$(cat rds-endpoint-artifact/rds-endpoint-key.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
 
@@ -251,7 +245,7 @@ jobs:
                 if [ -n "$IMAGE_TAG" ]; then echo "::add-mask::$IMAGE_TAG"; fi
 
                 # SSH access to EC2 instance
-                ssh ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} /bin/bash << EOF
+                ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@${{ needs.infra-provisioning.outputs.ec2-ip }} /bin/bash << EOF
                   echo "Connected to EC2 instance"
 
                   # Setup docker
