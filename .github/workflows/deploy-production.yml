@@ -42,7 +42,8 @@ jobs:
                     echo "TAG=${TAG}" >> $GITHUB_ENV
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
-                    # aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
+                    # 
+                    aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
                     echo "image-tag-key=$IMAGE_TAG_KEY" >> "$GITHUB_OUTPUT"
                     echo "$IMAGE_TAG_KEY" > image-tag.txt
