@@ -42,8 +42,7 @@ jobs:
                     echo "TAG=${TAG}" >> $GITHUB_ENV
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
-                    # 
-                    aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
+                    # aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
                     echo "$IMAGE_TAG_KEY" > image-tag-key.txt
 
@@ -155,15 +154,7 @@ jobs:
             run: terraform apply -auto-approve
 
           - name: artifacts
-            uses: actions/download-artifact@v4            
-
-          - name: Upload rds endpoint artifact
-            if: always()
-            uses: actions/upload-artifact@v4
-            with:
-              name: rds-endpoint-artifact
-              path: rds-endpoint-key.txt
-              retention-days: 1
+            uses: actions/download-artifact@v4
 
           - name: Get terraform outputs
             id: terraform-outputs
@@ -174,6 +165,14 @@ jobs:
               aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
               echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
               cat rds-endpoint-key.txt
+
+          - name: Upload rds endpoint artifact
+            if: always()
+            uses: actions/upload-artifact@v4
+            with:
+              name: rds-endpoint-artifact
+              path: rds-endpoint-key.txt
+              retention-days: 1
 
           - name: Clean up secrets on infra failure
             if: failure()
