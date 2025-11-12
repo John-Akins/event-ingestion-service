@@ -42,8 +42,7 @@ jobs:
                     echo "TAG=${TAG}" >> $GITHUB_ENV
                     echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
                     IMAGE_TAG_KEY=${{ github.ref_name }}-image-tag-key
-                    # 
-                    aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
+                    # aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
                     echo "$IMAGE_TAG_KEY" > image-tag-key.txt
 
@@ -250,9 +249,10 @@ jobs:
                   echo "Connected to EC2 instance"
 
                   # Setup docker
-                  sudo yum update -y
-                  sudo amazon-linux-extras install docker
-                  sudo service docker start
+                  sudo dnf update -y
+                  sudo dnf install docker -y
+                  sudo systemctl start docker
+                  sudo systemctl enable docker
                   sudo usermod -a -G docker ec2-user
 
                   # Setup docker-compose
