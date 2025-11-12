@@ -45,15 +45,14 @@ jobs:
                     # 
                     aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                     aws secretsmanager create-secret --name "$IMAGE_TAG_KEY" --secret-string "$IMAGE_TAG"
-                    echo "image-tag-key=$IMAGE_TAG_KEY" >> "$GITHUB_OUTPUT"
-                    echo "$IMAGE_TAG_KEY" > image-tag.txt
+                    echo "$IMAGE_TAG_KEY" > image-tag-key.txt
 
-            - name: Upload secret manager keys artifact
+            - name: Upload image tag artifact
               if: always()
               uses: actions/upload-artifact@v4
               with:
-                name: docker-secret-keys
-                path: image-tag.txt
+                name: image-tag-artifact
+                path: image-tag-key.txt
                 retention-days: 1
 
             - name: Build with maven
@@ -87,8 +86,8 @@ jobs:
               if: failure()
               run: |
                   # Clean up secrets immediately on build failure
-                  if [ -f image-tag.txt ]; then
-                    IMAGE_TAG_KEY=$(cat image-tag.txt)
+                  if [ -f image-tag-key.txt ]; then
+                    IMAGE_TAG_KEY=$(cat image-tag-key.txt)
                     aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                   fi
 
@@ -162,29 +161,21 @@ jobs:
               value=$(terraform output -raw rds_endpoint)
               RDS_ENDPOINT_KEY=RDS_ENDPOINT_KEY-$(date +%s)-$RANDOM
               aws secretsmanager create-secret --name "$RDS_ENDPOINT_KEY" --secret-string "$value"
-              echo "rds-endpoint-key=$RDS_ENDPOINT_KEY" >> "$GITHUB_OUTPUT"
-              echo "$RDS_ENDPOINT_KEY" > rds-endpoint.txt
+              echo "$RDS_ENDPOINT_KEY" > rds-endpoint-key.txt
 
-          - name: Upload secret manager keys artifact
+          - name: Upload rds endpoint artifact
             if: always()
             uses: actions/upload-artifact@v4
             with:
-              name: rds-secret-keys
-              path: rds-endpoint.txt
+              name: rds-endpoint-artifact
+              path: rds-endpoint-key.txt
               retention-days: 1
 
-          - name: Download secret manager keys
-            if: always()
-            uses: actions/download-artifact@v4
-            with:
-              name: docker-secret-keys
-              path: docker-secret-keys
-                
           - name: Clean up secrets on infra failure
             if: failure()
             run: |
-              if [ -f image-tag.txt ]; then
-                IMAGE_TAG_KEY=$(cat image-tag.txt)
+              if [ -f image-tag-artifact/image-tag-key.txt ]; then
+                IMAGE_TAG_KEY=$(cat image-tag-artifact/image-tag-key.txt)
                 aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
               fi
               if [ -v $RDS_ENDPOINT_KEY ]; then
@@ -198,7 +189,7 @@ jobs:
 
         permissions:
             id-token: write 
-            contents: read           
+            contents: read
 
         env: 
           EC2_IP: ${{ needs.infra-provisioning.outputs.ec2-ip }}
@@ -206,9 +197,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-
-            - name: Debug output access
-              run: echo  ${{ needs.infra-provisioning.outputs.rds-endpoint-key }}
 
             - name: AWS OIDC 
               uses: aws-actions/configure-aws-credentials@v4
@@ -221,27 +209,18 @@ jobs:
               with:
                 ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-            - name: Download secret manager keys
+            - name: artifacts
               uses: actions/download-artifact@v4
-              with:
-                name: rds-secret-keys
-                path: rds-secret-keys
-
-            - name: Download secret manager keys
-              uses: actions/download-artifact@v4
-              with:
-                name: docker-secret-keys
-                path: docker-secret-keys
 
             - name: Retrieve Secrets, AWS SecretsManager
               run: |
                 # Validate key files exist and are not empty
-                if [ ! -f rds-endpoint.txt ] || [ -z "$(cat rds-endpoint.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
-                if [ ! -f image-tag.txt ] || [ -z "$(cat image-tag.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
+                if [ ! -f image-tag-artifact/image-tag-key.txt ] || [ -z "$(cat image-tag-artifact/image-tag-key.txt)" ]; then echo "Error: IMAGE_TAG_KEY file is missing or empty"; exit 1; fi
+                if [ ! -f rds-endpoint-artifact/rds-endpoint-key.txt ] || [ -z "$(cat rds-endpoint-artifact/rds-endpoint-key.txt)" ]; then echo "Error: RDS_ENDPOINT_KEY file is missing or empty"; exit 1; fi
 
                 # Retrieve Secret Keys from artifacts
-                RDS_ENDPOINT_KEY=$(cat rds-endpoint.txt)
-                IMAGE_TAG_KEY=$(cat image-tag.txt)
+                IMAGE_TAG_KEY=$(cat image-tag-artifact/image-tag-key.txt)
+                RDS_ENDPOINT_KEY=$(cat rds-endpoint-artifact/rds-endpoint-key.txt)
 
                 # Retrieve Secret Values
                 IMAGE_TAG=$(aws secretsmanager get-secret-value --secret-id "$IMAGE_TAG_KEY" --query SecretString --output text )
@@ -297,12 +276,12 @@ jobs:
             - name: Clean up secrets on deploy failure
               if: always()
               run: |
-                if [ -f image-tag.txt ]; then
-                  IMAGE_TAG_KEY=$(cat image-tag.txt)
+                if [ -f image-tag-artifact/image-tag-key.txt ]; then
+                  IMAGE_TAG_KEY=$(cat image-tag-artifact/image-tag-key.txt)
                   aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
                 fi
 
-                if [ -f rds-endpoint.txt ]; then
-                  RDS_ENDPOINT_KEY=$(cat rds-endpoint.txt)
+                if [ -f rds-endpoint-artifact/rds-endpoint-key.txt ]; then
+                  RDS_ENDPOINT_KEY=$(cat rds-endpoint-artifact/rds-endpoint-key.txt)
                   aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
                 fi
