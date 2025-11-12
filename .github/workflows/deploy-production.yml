@@ -172,15 +172,23 @@ jobs:
               path: rds-endpoint.txt
               retention-days: 1
 
+          - name: Download secret manager keys
+            if: always()
+            uses: actions/download-artifact@v4
+            with:
+              name: secret-manager-keys
+              path: secret-manager-keys
+                
           - name: Clean up secrets on infra failure
             if: failure()
             run: |
-                # Clean up secrets immediately on infra provisioning failure
-                if [ -f rds-endpoint.txt ]; then
-                  RDS_ENDPOINT_KEY=$(cat rds-endpoint.txt)
-                  aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
-                fi
-
+              if [ -f secret-manager-keys/image-tag.txt ]; then
+                IMAGE_TAG_KEY=$(cat secret-manager-keys/image-tag.txt)
+                aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
+              fi
+              if [ -v $RDS_ENDPOINT_KEY ]; then
+                aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
+              fi              
 
     deploy-app:
         name: Deploy docker app to EC2 instance
@@ -264,43 +272,16 @@ jobs:
                   echo "Deployment completed successfully"
                 EOF
 
-            - name: Clean up secrets on deploy failure
-              if: failure()
-              run: |
-                  # Clean up all secrets immediately on deployment failure
-                  IMAGE_TAG_KEY=${{ needs.build-app.outputs.image-tag-key }}
-                  RDS_ENDPOINT_KEY=${{ needs.infra-provisioning.outputs.rds-endpoint-key }}
-
-                  aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
-                  aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
-
-    cleanup:
-        name: Cleanup Secrets
-        runs-on: ubuntu-latest
-        if: failure() || success() 
-
-        permissions:
-            id-token: write
-            contents: read
-
-        steps:
-            - name: AWS OIDC
-              uses: aws-actions/configure-aws-credentials@v4
-              with:
-                role-to-assume: ${{ secrets.AWS_SECRET_MANAGER_ROLE_ARN }}
-                aws-region: ${{ vars.TF_VAR_REGION }}
-
             - name: Download secret manager keys
               if: always()
               uses: actions/download-artifact@v4
               with:
                 name: secret-manager-keys
                 path: secret-manager-keys
-
-            - name: Clean up secrets
+                  
+            - name: Clean up secrets on deploy failure
               if: always()
               run: |
-                # Clean up secrets
                 if [ -f secret-manager-keys/image-tag.txt ]; then
                   IMAGE_TAG_KEY=$(cat secret-manager-keys/image-tag.txt)
                   aws secretsmanager delete-secret --secret-id "$IMAGE_TAG_KEY" --force-delete-without-recovery || true
@@ -309,4 +290,4 @@ jobs:
                 if [ -f secret-manager-keys/rds-endpoint.txt ]; then
                   RDS_ENDPOINT_KEY=$(cat secret-manager-keys/rds-endpoint.txt)
                   aws secretsmanager delete-secret --secret-id "$RDS_ENDPOINT_KEY" --force-delete-without-recovery || true
-                fi
+                fi   
