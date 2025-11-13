@@ -76,7 +76,6 @@ jobs:
 
     outputs:
       ec2-ip: ${{ steps.terraform-outputs.outputs.ec2-ip }}
-      rds-endpoint: ${{ steps.terraform-outputs.outputs.rds-endpoint }}
 
     defaults:
       run:
@@ -156,6 +155,12 @@ jobs:
           role-to-assume: ${{ secrets.GH_ACTION_OIDC_ROLE_ARN }}
           aws-region: ${{ vars.TF_VAR_REGION }}
 
+      - name: Get RDS endpoint
+        working-directory: infra
+        run: |
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
+
       - name: Debug Image
         run: |
           echo "Docker Image: ::add-mask::${{ needs.build-app.outputs.docker-image }}"
@@ -166,7 +171,7 @@ jobs:
         env:
           EC2_IP: ${{ needs.infra-provisioning.outputs.ec2-ip }}
           DOCKER_IMAGE: ${{ needs.build-app.outputs.docker-image }}
-          RDS_ENDPOINT: ${{ needs.infra-provisioning.outputs.rds-endpoint }}
+          RDS_ENDPOINT: ${{ env.RDS_ENDPOINT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           AWS_RDS_USERNAME: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
           AWS_RDS_PASSWORD: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
