@@ -142,7 +142,7 @@ jobs:
         run: |
           echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> "$GITHUB_OUTPUT"
           value=$(terraform output -raw rds_endpoint)
-          echo "rds-endpoint=$RDS_ENDPOINT" >> "$GITHUB_OUTPUT"
+          echo "rds-endpoint=$value" >> "$GITHUB_OUTPUT"
  
   deploy-app:
     name: Deploy docker app to EC2 instance
@@ -164,6 +164,7 @@ jobs:
           aws-region: ${{ vars.TF_VAR_REGION }}
 
       - name: Deploy to EC2
+        shell: bash
         env:
           EC2_IP: ${{ needs.infra-provisioning.outputs.ec2-ip }}
           DOCKER_IMAGE: ${{ needs.build-app.outputs.docker-image }}
