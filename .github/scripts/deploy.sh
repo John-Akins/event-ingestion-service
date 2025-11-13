@@ -35,6 +35,7 @@ ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP /bin/bash << E
   # Create environment file using here string
   cat > .env <<< "
 SPRING_PROFILES_ACTIVE=prod
+DOCKER_IMAGE=$DOCKER_IMAGE
 AWS_RDS_HOSTNAME=$RDS_ENDPOINT
 AWS_RDS_USERNAME=$AWS_RDS_USERNAME
 AWS_RDS_PASSWORD=$AWS_RDS_PASSWORD

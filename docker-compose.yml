@@ -1,6 +1,6 @@
 services:
   app:
-    image: analytics/event-ingestion-service
+    image: ${DOCKER_IMAGE}
     ports:
       - "8085:8085"
     volumes:
