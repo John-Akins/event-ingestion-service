@@ -4,16 +4,18 @@ set -e
 mkdir -p ~/.ssh
 echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
-ssh-keyscan -H $EC2_IP >> ~/.ssh/known_hosts
+ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
 
 echo "Deploying to EC2 instance at: $EC2_IP"
-echo "Using RDS endpoint: "
-if [ -n "$RDS_ENDPOINT" ]; then echo "::add-mask::$RDS_ENDPOINT"; fi
-echo "and Docker Image Tag: "
-if [ -n "$DOCKER_IMAGE" ]; then echo "::add-mask::$DOCKER_IMAGE"; fi
+echo "Using RDS endpoint: ::add-mask::$RDS_ENDPOINT"
+echo "and Docker Image: ::add-mask::$DOCKER_IMAGE"
 
-echo "deployment stage DOCKER_IMAGE:"
-echo $DOCKER_IMAGE
+if [ -z "$DOCKER_IMAGE" ]; then echo "DOCKER_IMAGE is empty or not set"; exit 1; fi
+if [ -z "$RDS_ENDPOINT" ]; then echo "RDS_ENDPOINT is empty or not set"; exit 1;
+if [ -z "$AWS_RDS_USERNAME" ]; then echo "AWS_RDS_USERNAME is empty or not set"; exit 1;
+if [ -z "$AWS_RDS_PASSWORD" ]; then echo "AWS_RDS_PASSWORD is empty or not set"; exit 1;
+if [ -z "$AWS_RDS_DB_NAME" ]; then echo "AWS_RDS_DB_NAME is empty or not set"; exit 1;
+if [ -z "$AWS_RDS_PORT" ]; then echo "AWS_RDS_PORT is empty or not set"; exit 1;
 
 # SSH access to EC2 instance
 ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP /bin/bash << EOF
