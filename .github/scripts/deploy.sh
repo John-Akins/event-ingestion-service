@@ -45,9 +45,8 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Pull the latest Docker image
   docker pull $DOCKER_IMAGE
 
-  # Stop and remove existing container if running
-  docker stop event-ingestion-service || true
-  docker rm event-ingestion-service || true
+  # Stop and remove existing containers
+  docker compose down || true
 
   # Run the new container
   docker compose up -d
