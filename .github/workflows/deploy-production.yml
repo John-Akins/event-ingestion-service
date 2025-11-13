@@ -36,7 +36,7 @@ jobs:
           echo "DOCKER_IMAGE=${IMAGE}" >> $GITHUB_ENV
           echo "docker-image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
           # Debug to check image output variable is being set
-          echo "Docker Image: ::add-mask::$docker-image"
+          echo "Docker Image: $docker-image"
 
       - name: Build with maven
         run: |
