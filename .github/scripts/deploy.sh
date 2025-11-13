@@ -7,8 +7,8 @@ chmod 600 ~/.ssh/id_rsa
 ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
 
 echo "Deploying to EC2 instance at: $EC2_IP"
-echo "Using RDS endpoint: ::add-mask::$RDS_ENDPOINT"
-echo "and Docker Image: ::add-mask::$DOCKER_IMAGE"
+echo "Using RDS endpoint: $RDS_ENDPOINT"
+echo "and Docker Image: $DOCKER_IMAGE"
 
 if [ -z "$DOCKER_IMAGE" ]; then echo "DOCKER_IMAGE is empty or not set"; exit 1; fi
 if [ -z "$RDS_ENDPOINT" ]; then echo "RDS_ENDPOINT is empty or not set"; exit 1;
