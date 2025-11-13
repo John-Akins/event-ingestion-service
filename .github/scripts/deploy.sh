@@ -46,9 +46,9 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   docker pull $DOCKER_IMAGE
 
   # Stop and remove existing containers
-  docker compose down || true
+  docker-compose down || true
 
   # Run the new container
-  docker compose up -d
+  docker-compose up -d
   echo "Deployment completed successfully"
 EOF
