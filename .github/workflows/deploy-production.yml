@@ -34,7 +34,7 @@ jobs:
           TAG=$(echo ${{ github.ref_name }} | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
           IMAGE="${{ vars.DOCKER_REPO }}:event-ingestion-service-${TAG}"
           echo "DOCKER_IMAGE=${IMAGE}" >> $GITHUB_ENV
-          echo "docker-image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "docker-image=${IMAGE}" >> $GITHUB_OUTPUT
           # Debug to check image output variable is being set
           echo "Docker Image: ${{ steps.generate-tag.outputs.docker-image }}"
 
