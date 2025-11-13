@@ -6,6 +6,9 @@ echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
 
+# Copy docker-compose.yml to EC2 instance
+scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no docker-compose.yml ec2-user@$EC2_IP:~/
+
 echo "Deploying to EC2 instance at: $EC2_IP"
 echo "Using RDS endpoint: $RDS_ENDPOINT"
 echo "and Docker Image: $DOCKER_IMAGE"
