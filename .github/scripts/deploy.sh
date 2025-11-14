@@ -52,6 +52,16 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   docker-compose down || true
 
   # Run the new container
-  docker-compose up -d
+  docker-compose up
+
+  # # Wait for container to start
+  # sleep 10
+
+  # # Validate that the app service is running
+  # if ! docker-compose ps app | grep -q "Up"; then
+  #   echo "Error: Docker container for app service is not running"
+  #   exit 1
+  # fi
+
   echo "Deployment completed successfully"
 EOF
