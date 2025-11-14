@@ -27,6 +27,8 @@ echo "Using RDS endpoint: $RDS_ENDPOINT"
 echo "and Docker Image: $DOCKER_IMAGE"
 echo "Region: $TF_VAR_REGION"
 
+echo "Debug: EC2_DNS='$EC2_DNS'"
+
 # SSH access to EC2 instance
 ssh -i ~/.ssh/id_rsa ec2-user@$EC2_IP /bin/bash << EOF
   echo "Connected to EC2 instance"
@@ -66,7 +68,7 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   mkdir -p ssl
 
   # Use EC2 public DNS for SSL certificate
-  SSL_DOMAIN=$EC2_DNS
+  SSL_DOMAIN="$EC2_DNS"
 
   echo "Using SSL domain: $SSL_DOMAIN"
 
