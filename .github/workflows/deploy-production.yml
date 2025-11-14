@@ -211,14 +211,15 @@ jobs:
       - name: Deploy to EC2
         shell: bash
         env:
-          EC2_IP: ${{ env.EC2_IP }}
           TF_VAR_REGION: ${{ vars.TF_VAR_REGION }}
-          CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+          EC2_IP: ${{ env.EC2_IP }}
+          EC2_DNS: ${{ env.EC2_DNS }}          
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           RDS_ENDPOINT: ${{ env.RDS_ENDPOINT }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           AWS_RDS_USERNAME: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
           AWS_RDS_PASSWORD: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
           AWS_RDS_DB_NAME: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
           AWS_RDS_PORT: ${{ secrets.TF_VAR_RDSCONFIG_DB_PORT }}
-        run: .github/scripts/deploy.sh "${{ env.EC2_DNS }}"
+          CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: .github/scripts/deploy.sh
