@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
-# Validate required env variables
+# Get arguments
+EC2_DNS=$1
+# Validate required variables
 if [ -z "$EC2_IP" ]; then echo "EC2_IP is empty or not set"; exit 1; fi
-if [ -z "$EC2_DNS" ]; then echo "EC2_DNS is empty or not set"; exit 1; fi
+if [ -z "$EC2_DNS" ]; then echo "EC2_DNS is empty"; exit 1; fi
 if [ -z "$DOCKER_IMAGE" ]; then echo "DOCKER_IMAGE is empty or not set"; exit 1; fi
 if [ -z "$RDS_ENDPOINT" ]; then echo "RDS_ENDPOINT is empty or not set"; exit 1; fi
 if [ -z "$AWS_RDS_USERNAME" ]; then echo "AWS_RDS_USERNAME is empty or not set"; exit 1; fi

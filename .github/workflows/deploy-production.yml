@@ -212,7 +212,6 @@ jobs:
         shell: bash
         env:
           EC2_IP: ${{ env.EC2_IP }}
-          EC2_DNS: ${{ env.EC2_DNS }}          
           TF_VAR_REGION: ${{ vars.TF_VAR_REGION }}
           CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
@@ -222,4 +221,4 @@ jobs:
           AWS_RDS_PASSWORD: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
           AWS_RDS_DB_NAME: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
           AWS_RDS_PORT: ${{ secrets.TF_VAR_RDSCONFIG_DB_PORT }}
-        run: .github/scripts/deploy.sh
+        run: .github/scripts/deploy.sh "${{ env.EC2_DNS }}"
