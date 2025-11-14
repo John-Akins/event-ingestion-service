@@ -5,7 +5,6 @@ services:
       - "8085:8085"
     volumes:
       - ./logs:/logs
-    build: .
     dns:
       - 8.8.8.8 # dns resolution issue fix
     environment:
