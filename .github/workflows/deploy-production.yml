@@ -140,9 +140,10 @@ jobs:
         run: |
           echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> "$GITHUB_OUTPUT"
           value=$(terraform output -raw rds_endpoint)
-          echo "rds-endpoint=$value" >> "$GITHUB_OUTPUT"
+          # Strip RDS port form host
+          endpoint=$(echo "$value" | cut -d':' -f1)
           # Save RDS endpoint to file for artifact
-          echo "$value" > rds-endpoint.txt
+          echo "$endpoint" > rds-endpoint.txt
 
       - name: Upload RDS endpoint artifact
         uses: actions/upload-artifact@v4

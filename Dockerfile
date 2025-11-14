@@ -7,6 +7,7 @@ RUN ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:21-jdk-alpine
 RUN addgroup -S spring && adduser -S spring -G spring
+RUN mkdir -p /logs && chown -R spring:spring /logs
 USER spring:spring
 COPY --from=builder target/*.jar app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
