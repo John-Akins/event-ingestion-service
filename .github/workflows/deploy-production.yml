@@ -190,6 +190,8 @@ jobs:
         shell: bash
         env:
           EC2_IP: ${{ needs.infra-provisioning.outputs.ec2-ip }}
+          TF_VAR_REGION: ${{ vars.TF_VAR_REGION }}
+          CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           RDS_ENDPOINT: ${{ env.RDS_ENDPOINT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

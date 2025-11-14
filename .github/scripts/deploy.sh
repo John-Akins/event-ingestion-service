@@ -6,12 +6,14 @@ echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa
 ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
 
-# Copy docker-compose.yml to EC2 instance
+# Copy docker-compose.yml and nginx.conf to EC2 instance
 scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no docker-compose.yml ec2-user@$EC2_IP:~/
+scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no nginx.conf ec2-user@$EC2_IP:~/
 
 echo "Deploying to EC2 instance at: $EC2_IP"
 echo "Using RDS endpoint: $RDS_ENDPOINT"
 echo "and Docker Image: $DOCKER_IMAGE"
+echo "Region: $TF_VAR_REGION"
 
 if [ -z "$DOCKER_IMAGE" ]; then echo "DOCKER_IMAGE is empty or not set"; exit 1; fi
 if [ -z "$RDS_ENDPOINT" ]; then echo "RDS_ENDPOINT is empty or not set"; exit 1; fi
@@ -54,6 +56,33 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Create logs directory with proper permissions for container access
   mkdir -p logs
   chmod a+w logs
+
+  # Setup SSL certificates
+  mkdir -p ssl
+
+  # Construct EC2 public DNS name for SSL certificate
+  EC2_DNS_IP=$(echo $EC2_IP | tr '.' '-')
+  SSL_DOMAIN="ec2-${EC2_DNS_IP}.${TF_VAR_REGION}.compute.amazonaws.com"
+
+  echo "Using SSL domain: $SSL_DOMAIN"
+
+  # Setup SSL certificates with Let's Encrypt
+  echo "Setting up Let's Encrypt certificate for domain: $SSL_DOMAIN"
+
+  # Install certbot for Let's Encrypt
+  sudo dnf install certbot -y
+
+  # Stop nginx if running to free port 80 for certbot
+  docker-compose down || true
+
+  # Obtain Let's Encrypt certificate
+  sudo certbot certonly --standalone --agree-tos --email $CERTBOT_EMAIL -d $SSL_DOMAIN
+
+  # Create symlink to Let's Encrypt certificates
+  sudo ln -sf /etc/letsencrypt/live/$SSL_DOMAIN/fullchain.pem ssl/fullchain.pem
+  sudo ln -sf /etc/letsencrypt/live/$SSL_DOMAIN/privkey.pem ssl/privkey.pem
+
+  echo "Let's Encrypt certificate obtained and linked for $SSL_DOMAIN"
 
   # Run the new container
   docker-compose up -d

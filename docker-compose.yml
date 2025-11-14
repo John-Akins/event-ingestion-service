@@ -1,8 +1,6 @@
 services:
   app:
     image: ${DOCKER_IMAGE}
-    ports:
-      - "8085:8085"
     volumes:
       - ./logs:/logs
     dns:
@@ -12,3 +10,17 @@ services:
       DATABASE_URL: "jdbc:postgresql://${AWS_RDS_HOSTNAME}:${AWS_RDS_PORT}/${AWS_RDS_DB_NAME}"
       DATABASE_USERNAME: "$AWS_RDS_USERNAME"
       DATABASE_PASSWORD: "$AWS_RDS_PASSWORD"
+    depends_on:
+      - nginx
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs:/var/log/nginx
+    depends_on:
+      - app
