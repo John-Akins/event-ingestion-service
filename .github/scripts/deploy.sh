@@ -51,17 +51,21 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Stop and remove existing containers
   docker-compose down || true
 
+  # Create logs directory with proper permissions for container access
+  mkdir -p logs
+  chmod a+w logs
+
   # Run the new container
-  docker-compose up
+  docker-compose up -d
 
   # # Wait for container to start
-  # sleep 10
+  sleep 10
 
-  # # Validate that the app service is running
-  # if ! docker-compose ps app | grep -q "Up"; then
-  #   echo "Error: Docker container for app service is not running"
-  #   exit 1
-  # fi
+  # Validate that the app service is running
+  if ! docker-compose ps app | grep -q "Up"; then
+    echo "Error: Docker container for app service is not running"
+    exit 1
+  fi
 
   echo "Deployment completed successfully"
 EOF
