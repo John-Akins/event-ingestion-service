@@ -98,6 +98,10 @@ output "eis_ec2_ip" {
   value = aws_instance.eis_ec2.public_ip
 }
 
+output "eis_ec2_dns" {
+  value = aws_instance.eis_ec2.public_dns
+}
+
 output "rds_endpoint" {
   value = aws_db_instance.primary.endpoint
 }

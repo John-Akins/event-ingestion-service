@@ -80,9 +80,6 @@ jobs:
       id-token: write
       contents: read
 
-    outputs:
-      ec2-ip: ${{ steps.terraform-outputs.outputs.ec2-ip }}
-
     defaults:
       run:
         working-directory: "infra"
@@ -138,12 +135,31 @@ jobs:
       - name: Get terraform outputs
         id: terraform-outputs
         run: |
-          echo "ec2-ip=$(terraform output -raw eis_ec2_ip)" >> "$GITHUB_OUTPUT"
+          ec2_ip=$(terraform output -raw eis_ec2_ip)
+          ec2_dns=$(terraform output -raw eis_ec2_dns)
+          # Save EC2 IP to file for artifact
+          echo "$ec2_ip" > ec2-ip.txt
+          # Save EC2 DNS to file for artifact
+          echo "$ec2_dns" > ec2-dns.txt
           value=$(terraform output -raw rds_endpoint)
           # Strip RDS port form host
           endpoint=$(echo "$value" | cut -d':' -f1)
           # Save RDS endpoint to file for artifact
           echo "$endpoint" > rds-endpoint.txt
+
+      - name: Upload EC2 IP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ec2-ip-artifact
+          path: infra/ec2-ip.txt
+          retention-days: 1
+
+      - name: Upload EC2 DNS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ec2-dns-artifact
+          path: infra/ec2-dns.txt
+          retention-days: 1
 
       - name: Upload RDS endpoint artifact
         uses: actions/upload-artifact@v4
@@ -178,18 +194,25 @@ jobs:
         run: |
           DOCKER_IMAGE=$(cat docker-image-artifact/docker-image.txt)
           RDS_ENDPOINT=$(cat rds-endpoint-artifact/rds-endpoint.txt)
+          EC2_IP=$(cat ec2-ip-artifact/ec2-ip.txt)
+          EC2_DNS=$(cat ec2-dns-artifact/ec2-dns.txt)
           echo "DOCKER_IMAGE=$DOCKER_IMAGE" >> $GITHUB_ENV
           echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+          echo "EC2_DNS=$EC2_DNS" >> $GITHUB_ENV          
 
       - name: Debug values
         run: |
           echo "Docker Image: $DOCKER_IMAGE"
           echo "RDS Endpoint: $RDS_ENDPOINT"
+          echo "EC2 IP: $EC2_IP"
+          echo "EC2 DNS: $EC2_DNS"
 
       - name: Deploy to EC2
         shell: bash
         env:
-          EC2_IP: ${{ needs.infra-provisioning.outputs.ec2-ip }}
+          EC2_IP: ${{ env.EC2_IP }}
+          EC2_DNS: ${{ env.EC2_DNS }}          
           TF_VAR_REGION: ${{ vars.TF_VAR_REGION }}
           CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}

@@ -1,29 +1,34 @@
 #!/bin/bash
 set -e
-
-mkdir -p ~/.ssh
-echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa
-ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
-
-# Copy docker-compose.yml and nginx.conf to EC2 instance
-scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no docker-compose.yml ec2-user@$EC2_IP:~/
-scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no nginx.conf ec2-user@$EC2_IP:~/
-
-echo "Deploying to EC2 instance at: $EC2_IP"
-echo "Using RDS endpoint: $RDS_ENDPOINT"
-echo "and Docker Image: $DOCKER_IMAGE"
-echo "Region: $TF_VAR_REGION"
-
+# Validate required env variables
+if [ -z "$EC2_IP" ]; then echo "EC2_IP is empty or not set"; exit 1; fi
+if [ -z "$EC2_DNS" ]; then echo "EC2_DNS is empty or not set"; exit 1; fi
 if [ -z "$DOCKER_IMAGE" ]; then echo "DOCKER_IMAGE is empty or not set"; exit 1; fi
 if [ -z "$RDS_ENDPOINT" ]; then echo "RDS_ENDPOINT is empty or not set"; exit 1; fi
 if [ -z "$AWS_RDS_USERNAME" ]; then echo "AWS_RDS_USERNAME is empty or not set"; exit 1; fi
 if [ -z "$AWS_RDS_PASSWORD" ]; then echo "AWS_RDS_PASSWORD is empty or not set"; exit 1; fi
 if [ -z "$AWS_RDS_DB_NAME" ]; then echo "AWS_RDS_DB_NAME is empty or not set"; exit 1; fi
 if [ -z "$AWS_RDS_PORT" ]; then echo "AWS_RDS_PORT is empty or not set"; exit 1; fi
+if [ -z "$TF_VAR_REGION" ]; then echo "TF_VAR_REGION is empty or not set"; exit 1; fi
+if [ -z "$CERTBOT_EMAIL" ]; then echo "CERTBOT_EMAIL is empty or not set"; exit 1; fi
+
+# Configure ssh access
+mkdir -p ~/.ssh
+echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa
+ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
+
+# Copy docker-compose.yml and nginx.conf to EC2 instance
+scp -i ~/.ssh/id_rsa docker-compose.yml ec2-user@$EC2_IP:~/
+scp -i ~/.ssh/id_rsa nginx.conf ec2-user@$EC2_IP:~/
+
+echo "Deploying to EC2 instance at: $EC2_IP"
+echo "Using RDS endpoint: $RDS_ENDPOINT"
+echo "and Docker Image: $DOCKER_IMAGE"
+echo "Region: $TF_VAR_REGION"
 
 # SSH access to EC2 instance
-ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP /bin/bash << EOF
+ssh -i ~/.ssh/id_rsa ec2-user@$EC2_IP /bin/bash << EOF
   echo "Connected to EC2 instance"
 
   # Setup docker
@@ -60,11 +65,12 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Setup SSL certificates
   mkdir -p ssl
 
-  # Construct EC2 public DNS name for SSL certificate
-  EC2_DNS_IP=$(echo $EC2_IP | tr '.' '-')
-  SSL_DOMAIN="ec2-${EC2_DNS_IP}.${TF_VAR_REGION}.compute.amazonaws.com"
+  # Use EC2 public DNS for SSL certificate
+  SSL_DOMAIN=$EC2_DNS
 
   echo "Using SSL domain: $SSL_DOMAIN"
+
+  if [ -z "$SSL_DOMAIN" ]; then echo "SSL_DOMAIN is empty or invalid"; exit 1; fi
 
   # Setup SSL certificates with Let's Encrypt
   echo "Setting up Let's Encrypt certificate for domain: $SSL_DOMAIN"
