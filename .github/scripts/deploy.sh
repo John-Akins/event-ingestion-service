@@ -12,6 +12,9 @@ if [ -z "$AWS_RDS_PORT" ]; then echo "AWS_RDS_PORT is empty or not set"; exit 1;
 if [ -z "$TF_VAR_REGION" ]; then echo "TF_VAR_REGION is empty or not set"; exit 1; fi
 if [ -z "$CERTBOT_EMAIL" ]; then echo "CERTBOT_EMAIL is empty or not set"; exit 1; fi
 
+# Use EC2 public DNS for SSL certificate
+SSL_DOMAIN="$EC2_DNS"
+
 # Configure ssh access
 mkdir -p ~/.ssh
 echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -28,6 +31,7 @@ echo "and Docker Image: $DOCKER_IMAGE"
 echo "Region: $TF_VAR_REGION"
 
 echo "Debug: EC2_DNS='$EC2_DNS'"
+echo "Debug: SSL_DOMAIN='$SSL_DOMAIN'"
 
 # SSH access to EC2 instance
 ssh -i ~/.ssh/id_rsa ec2-user@$EC2_IP /bin/bash << EOF
@@ -65,10 +69,7 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   chmod a+w logs
 
   # Setup SSL certificates
-  mkdir -p ssl
-
-  # Use EC2 public DNS for SSL certificate
-  SSL_DOMAIN="$EC2_DNS"
+  mkdir -p ssl  
 
   echo "Using SSL domain: $SSL_DOMAIN"
 
