@@ -136,11 +136,8 @@ jobs:
         id: terraform-outputs
         run: |
           ec2_ip=$(terraform output -raw eis_ec2_ip)
-          ec2_dns=$(terraform output -raw eis_ec2_dns)
           # Save EC2 IP to file for artifact
           echo "$ec2_ip" > ec2-ip.txt
-          # Save EC2 DNS to file for artifact
-          echo "$ec2_dns" > ec2-dns.txt
           value=$(terraform output -raw rds_endpoint)
           # Strip RDS port form host
           endpoint=$(echo "$value" | cut -d':' -f1)
@@ -152,13 +149,6 @@ jobs:
         with:
           name: ec2-ip-artifact
           path: infra/ec2-ip.txt
-          retention-days: 1
-
-      - name: Upload EC2 DNS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ec2-dns-artifact
-          path: infra/ec2-dns.txt
           retention-days: 1
 
       - name: Upload RDS endpoint artifact
@@ -195,31 +185,26 @@ jobs:
           DOCKER_IMAGE=$(cat docker-image-artifact/docker-image.txt)
           RDS_ENDPOINT=$(cat rds-endpoint-artifact/rds-endpoint.txt)
           EC2_IP=$(cat ec2-ip-artifact/ec2-ip.txt)
-          EC2_DNS=$(cat ec2-dns-artifact/ec2-dns.txt)
           echo "DOCKER_IMAGE=$DOCKER_IMAGE" >> $GITHUB_ENV
           echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
-          echo "EC2_DNS=$EC2_DNS" >> $GITHUB_ENV          
 
       - name: Debug values
         run: |
           echo "Docker Image: $DOCKER_IMAGE"
           echo "RDS Endpoint: $RDS_ENDPOINT"
           echo "EC2 IP: $EC2_IP"
-          echo "EC2 DNS: $EC2_DNS"
 
       - name: Deploy to EC2
         shell: bash
         env:
           TF_VAR_REGION: ${{ vars.TF_VAR_REGION }}
           EC2_IP: ${{ env.EC2_IP }}
-          EC2_DNS: ${{ env.EC2_DNS }}          
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           RDS_ENDPOINT: ${{ env.RDS_ENDPOINT }}
           AWS_RDS_USERNAME: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
           AWS_RDS_PASSWORD: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
           AWS_RDS_DB_NAME: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
           AWS_RDS_PORT: ${{ secrets.TF_VAR_RDSCONFIG_DB_PORT }}
-          CERTBOT_EMAIL: ${{ secrets.CERTBOT_EMAIL }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: .github/scripts/deploy.sh
