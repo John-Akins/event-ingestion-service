@@ -28,7 +28,7 @@ ssh -i ~/.ssh/id_rsa ec2-user@$EC2_IP /bin/bash << EOF
   sudo systemctl start docker
   sudo systemctl enable docker
   sudo usermod -a -G docker ec2-user
-
+ 
   # Install docker-compose if not available
   command -v docker-compose >/dev/null 2>&1 || {
     echo "Installing Docker Compose..."
@@ -49,22 +49,31 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Pull the latest Docker image
   docker pull $DOCKER_IMAGE
 
-  # Stop and remove existing containers
+  # Stop and remove existing containers (for clean deployment)
+  echo "Stopping existing containers..."
   docker-compose down || true
 
   # Create logs directory with proper permissions for container access
-  mkdir -p /logs && chmod -R 777 /logs
+  mkdir -p /logs
+  sudo chown -R 1000:1000 /logs
+  sudo chmod -R 755 /logs
 
   # Run container and validate deployment
   docker-compose up -d
 
-  # Quick health check
-  sleep 5
-  HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health)
-  if [ "$HEALTH_STATUS" -eq 200 ]; then
-    echo "✅ Deployment successful - Health check passed"
+  # Quick health check with timeout and error handling
+  sleep 30
+  echo "Performing health check..."
+  if HEALTH_STATUS=$(curl -s --max-time 30 -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health 2>/dev/null); then
+    if [[ "$HEALTH_STATUS" =~ ^[0-9]+$ ]] && [ "$HEALTH_STATUS" -eq 200 ]; then
+      echo "✅ Deployment successful - Health check passed"
+    else
+      echo "❌ Deployment failed - Health check failed with status $HEALTH_STATUS"
+      docker-compose logs app
+      exit 1
+    fi
   else
-    echo "❌ Deployment failed - Health check failed with status $HEALTH_STATUS"
+    echo "❌ Deployment failed - Could not reach health endpoint"
     docker-compose logs app
     exit 1
   fi
