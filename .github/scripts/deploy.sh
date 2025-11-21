@@ -55,8 +55,7 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
 
   # Create logs directory with proper permissions for container access
   mkdir -p /logs
-  sudo chown -R 1000:1000 /logs
-  sudo chmod -R 755 /logs
+  sudo chmod a+w /logs
 
   # Run container and validate deployment
   docker-compose up -d
@@ -64,32 +63,25 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Quick health check with timeout and error handling
   sleep 30
   echo "Performing health check..."
-  echo "Checking if container is running..."
-  docker-compose ps
 
-  echo "Testing health endpoint connectivity..."
-  # First, try to get a response with verbose output for debugging
-  RAW_RESPONSE=$(curl -v --max-time 15 http://localhost:4040/manage/health 2>&1)
+  end_time=$((SECONDS+120))
+  while [ $SECONDS -lt $end_time ]; do
+    HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health || true)
+    if [ "$HEALTH_STATUS" -eq 200 ]; then
+      echo "✅ Health check passed with status $HEALTH_STATUS"
+      break
+    fi
+    echo "Health check failed with status $HEALTH_STATUS. Retrying in 5 seconds..."
+    sleep 5
+  done
 
-  # Extract HTTP status code from response
-  HEALTH_STATUS=$(echo "$RAW_RESPONSE" | grep -o "HTTP/[0-9.]* [0-9]*" | tail -1 | awk '{print $2}')
-
-  # Also try direct status extraction as fallback
-  if [ -z "$HEALTH_STATUS" ]; then
-    HEALTH_STATUS=$(curl -s --connect-timeout 10 --max-time 15 -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health 2>/dev/null)
-  fi
-
-  echo "Health status retrieved: '$HEALTH_STATUS'"
-
-  if [ -n "$HEALTH_STATUS" ] && [[ "$HEALTH_STATUS" =~ ^[0-9]+$ ]] && [ "$HEALTH_STATUS" -eq 200 ]; then
-    echo "✅ Deployment successful - Health check passed with HTTP $HEALTH_STATUS"
-  else
-    echo "❌ Deployment failed - Health check failed with HTTP status: $HEALTH_STATUS"
-    echo "Full curl response for debugging:"
-    echo "$RAW_RESPONSE"
-    echo ""
+  if [ "$HEALTH_STATUS" -ne 200 ]; then
+    echo "❌ Deployment failed: Health check timed out after 2 minutes."
+    echo "Final health status: $HEALTH_STATUS"
     echo "Container logs:"
-    docker-compose logs app
+    docker-compose logs --tail=50 app
     exit 1
   fi
+
+  echo "✅ Deployment successful!"
 EOF
