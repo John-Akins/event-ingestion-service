@@ -64,16 +64,31 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
   # Quick health check with timeout and error handling
   sleep 30
   echo "Performing health check..."
-  if HEALTH_STATUS=$(curl -s --max-time 30 -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health 2>/dev/null); then
-    if [[ "$HEALTH_STATUS" =~ ^[0-9]+$ ]] && [ "$HEALTH_STATUS" -eq 200 ]; then
-      echo "✅ Deployment successful - Health check passed"
-    else
-      echo "❌ Deployment failed - Health check failed with status $HEALTH_STATUS"
-      docker-compose logs app
-      exit 1
-    fi
+  echo "Checking if container is running..."
+  docker-compose ps
+
+  echo "Testing health endpoint connectivity..."
+  # First, try to get a response with verbose output for debugging
+  RAW_RESPONSE=$(curl -v --max-time 15 http://localhost:4040/manage/health 2>&1)
+
+  # Extract HTTP status code from response
+  HEALTH_STATUS=$(echo "$RAW_RESPONSE" | grep -o "HTTP/[0-9.]* [0-9]*" | tail -1 | awk '{print $2}')
+
+  # Also try direct status extraction as fallback
+  if [ -z "$HEALTH_STATUS" ]; then
+    HEALTH_STATUS=$(curl -s --connect-timeout 10 --max-time 15 -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health 2>/dev/null)
+  fi
+
+  echo "Health status retrieved: '$HEALTH_STATUS'"
+
+  if [ -n "$HEALTH_STATUS" ] && [[ "$HEALTH_STATUS" =~ ^[0-9]+$ ]] && [ "$HEALTH_STATUS" -eq 200 ]; then
+    echo "✅ Deployment successful - Health check passed with HTTP $HEALTH_STATUS"
   else
-    echo "❌ Deployment failed - Could not reach health endpoint"
+    echo "❌ Deployment failed - Health check failed with HTTP status: $HEALTH_STATUS"
+    echo "Full curl response for debugging:"
+    echo "$RAW_RESPONSE"
+    echo ""
+    echo "Container logs:"
     docker-compose logs app
     exit 1
   fi
