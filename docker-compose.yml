@@ -2,9 +2,10 @@ services:
   app:
     image: ${DOCKER_IMAGE}
     ports:
-      - "8080:8080"
+      - "8085:8085"
+      - "4040:4040"
     volumes:
-      - ./logs:/logs
+      - /logs:/logs
     dns:
       - 8.8.8.8 # dns resolution issue fix
     environment:

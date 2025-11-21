@@ -11,8 +11,7 @@ public class HealthCheck implements HealthIndicator {
 	@Override
 	public Health health() {
 		// TODO: Implement custom health check with indicator of why service is down
-
-		return Health.up().build();
+		return Health.up().withDetail("Custom Health Check Status", "OK!").build();
 	}
 
 }

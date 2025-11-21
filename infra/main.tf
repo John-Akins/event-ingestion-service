@@ -48,8 +48,8 @@ resource "aws_security_group" "ec2_sg" {
 
   # Direct access from ALB to Spring Boot port
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 8085
+    to_port     = 8085
     protocol    = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
   }
@@ -132,7 +132,7 @@ resource "aws_lb" "app_alb" {
 # Target Group for ALB
 resource "aws_lb_target_group" "app_tg" {
   name     = "app-tg"
-  port     = 8080
+  port     = 8085
   protocol = "HTTP"
   vpc_id   = var.default_vpc
 
@@ -151,7 +151,7 @@ resource "aws_lb_target_group" "app_tg" {
 resource "aws_lb_target_group_attachment" "app_attachment" {
   target_group_arn = aws_lb_target_group.app_tg.arn
   target_id        = aws_instance.eis_ec2.id
-  port             = 8080
+  port             = 8085
 }
 
 # HTTP Listener - SSL handled by Cloudflare upstream
