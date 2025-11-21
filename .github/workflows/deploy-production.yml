@@ -157,7 +157,7 @@ jobs:
       - name: Upload RDS endpoint
         uses: actions/upload-artifact@v4
         with:
-          name: rd-endpoint
+          name: rds-endpoint
           path: infra/rds-endpoint.txt
           retention-days: 1
       
