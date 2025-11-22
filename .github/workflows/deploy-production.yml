@@ -194,11 +194,11 @@ jobs:
           DOCKER_IMAGE=$(cat docker-image/docker-image.txt)
           RDS_ENDPOINT=$(cat rds-endpoint/rds-endpoint.txt)
           EC2_IP=$(cat ec2-ip/ec2-ip.txt)
-          AWS_RDS_PORT=$(cat rds-port/rds-port.txt)
+          DB_PORT=$(cat rds-port/rds-port.txt)
           echo "DOCKER_IMAGE=$DOCKER_IMAGE" >> $GITHUB_ENV
           echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
           echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
-          echo "AWS_RDS_PORT=$AWS_RDS_PORT" >> $GITHUB_ENV
+          echo "DB_PORT=$DB_PORT" >> $GITHUB_ENV
 
       - name: Deploy to EC2
         shell: bash
@@ -207,9 +207,9 @@ jobs:
           EC2_IP: ${{ env.EC2_IP }}
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
           RDS_ENDPOINT: ${{ env.RDS_ENDPOINT }}
-          AWS_RDS_USERNAME: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
-          AWS_RDS_PASSWORD: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
-          AWS_RDS_DB_NAME: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
-          AWS_RDS_PORT: ${{ env.AWS_RDS_PORT }}
+          DB_USERNAME: ${{ secrets.TF_VAR_RDSCONFIG_USERNAME }}
+          DB_PASSWORD: ${{ secrets.TF_VAR_RDSCONFIG_PASSWORD }}
+          DB_NAME: ${{ secrets.TF_VAR_RDSCONFIG_DB_NAME }}
+          DB_PORT: ${{ env.DB_PORT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: .github/scripts/deploy.sh
