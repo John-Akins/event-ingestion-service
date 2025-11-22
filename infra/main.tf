@@ -54,6 +54,14 @@ resource "aws_security_group" "ec2_sg" {
     security_groups = [aws_security_group.alb_sg.id]
   }
 
+  # Health check access from ALB
+  ingress {
+    from_port       = 4040
+    to_port         = 4040
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb_sg.id]
+  }
+
   egress {
     cidr_blocks = ["0.0.0.0/0"]
     protocol    = "-1" #all protocols
@@ -121,7 +129,7 @@ resource "aws_instance" "eis_ec2" {
 # Application Load Balancer for SSL termination
 resource "aws_lb" "app_alb" {
   name               = "app-alb"
-  internal           = true  # Changed to internal since Cloudflare handles external traffic
+  internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = [var.subnet_a, var.subnet_b]
@@ -137,7 +145,8 @@ resource "aws_lb_target_group" "app_tg" {
   vpc_id   = var.default_vpc
 
   health_check {
-    path                = "/actuator/health"
+    path                = "/manage/health"
+    port                = "4040"
     protocol            = "HTTP"
     matcher             = "200"
     interval            = 30
