@@ -1,16 +1,15 @@
 services:
   app:
-    image: analytics/event-ingestion-service
+    image: ${DOCKER_IMAGE}
     ports:
       - "8085:8085"
+      - "4040:4040"
     volumes:
-      - ./logs:/logs
-    build: .
+      - /logs:/logs
     dns:
       - 8.8.8.8 # dns resolution issue fix
     environment:
       SPRING_PROFILES_ACTIVE: $SPRING_PROFILES_ACTIVE
-      AWS_RDS_PORT: 5432
       DATABASE_URL: "jdbc:postgresql://${AWS_RDS_HOSTNAME}:${AWS_RDS_PORT}/${AWS_RDS_DB_NAME}"
       DATABASE_USERNAME: "$AWS_RDS_USERNAME"
       DATABASE_PASSWORD: "$AWS_RDS_PASSWORD"

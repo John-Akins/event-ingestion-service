@@ -1,0 +1,147 @@
+openapi: 3.1.0
+info:
+  title: Event Ingestion API
+  version: 1.0.0
+  description: API for ingesting events into the analytics platform.
+servers:
+  - url: https://analytics-service.johnakins.dev/ingest
+    description: Production server
+  - url: http://localhost:8085
+    description: Local development server
+paths:
+  /ingest:
+    post:
+      summary: Ingest a new event
+      operationId: ingestEvent
+      requestBody:
+        description: Event object to be ingested
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+            examples:
+              pageView:
+                summary: Page View Event Example
+                value:
+                  - eventType: "PAGE_VIEW"
+                    userHash: "e9c0494b2b14ca2b48258c05dd6c4c14"
+                    clientInfo:
+                      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                      ipAddress: "192.168.1.100"
+                      locale: "en-US"
+                      timezone: "America/New_York"
+                      platform: "web"
+                    data:
+                      page: "/home"
+                      referrer: "https://google.com"
+                      loadTime: 1250
+              userAction:
+                summary: User Action Event Example
+                value:
+                  - eventType: "USER_ACTION"
+                    userHash: "e9c0494b2b14ca2b48258c05dd6c4c14"
+                    clientInfo:
+                      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                      ipAddress: "192.168.1.100"
+                      locale: "en-US"
+                      timezone: "America/New_York"
+                      platform: "web"
+                    data:
+                      element: "login-button"
+                      action: "click"
+                      elementId: "btn-login-001"
+      responses:
+        '200':
+          description: Event accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Event:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - sessionId
+        - clientInfo
+        - metadata
+        - hash
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Unique identifier for the event.
+        eventType:
+          type: string
+          description: Type of the event (e.g., page_view, click, form_submission).
+        timestamp:
+          type: string
+          format: date-time
+          description: The time the event occurred.
+        sessionId:
+          type: string
+          format: uuid
+          description: Unique identifier for the user session.
+        clientInfo:
+          $ref: '#/components/schemas/ClientInfo'
+        metadata:
+          type: object
+          additionalProperties: true
+          description: A map of key-value pairs for additional event data.
+        hash:
+          type: string
+          description: A SHA-256 hash of the event payload for data integrity.
+    ClientInfo:
+      type: object
+      properties:
+        ipAddress:
+          type: string
+          format: ipv4
+          description: The IP address of the client.
+        userAgent:
+          type: string
+          description: The user agent string of the client's browser.
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+          description: The HTTP status code.
+        error:
+          type: string
+          description: The error type.
+        message:
+          type: string
+          description: A detailed error message.
+        path:
+          type: string
+          description: The path where the error occurred.
+        timestamp:
+          type: string
+          format: date-time
+          description: The time the error occurred.
+        traceId:
+          type: string
+          description: A unique identifier for tracing the request.
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A message indicating the result of the operation.

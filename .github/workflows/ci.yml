@@ -1,0 +1,35 @@
+name: CI Pipeline
+
+on:
+    pull_request:
+    # push:
+        branches: [main]
+
+jobs:
+    build-test:
+        name: Build and test application
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Set up Java
+          uses: actions/setup-java@v4
+          with:
+            distribution: 'temurin'
+            java-version: 21
+            cache: 'maven'
+
+        - name: Build with Maven
+          run: mvn clean install -DskipTests
+
+        - name: Run tests
+          run: mvn test
+
+        - name: Upload test artifacts on failure
+          if: failure()
+          uses: actions/upload-artifact@v4
+          with:
+            name: test-results
+            path: target/surefire-reports/
