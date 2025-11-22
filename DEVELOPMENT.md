@@ -24,11 +24,11 @@ Once the image is built, you can run the application using Docker Compose. The `
     ```bash
     export DOCKER_IMAGE=event-ingestion-service
     export SPRING_PROFILES_ACTIVE=dev
-    export AWS_RDS_HOSTNAME=<your_database_host>
-    export AWS_RDS_PORT=<your_database_port>
-    export AWS_RDS_DB_NAME=<your_database_name>
-    export AWS_RDS_USERNAME=<your_database_username>
-    export AWS_RDS_PASSWORD=<your_database_password>
+    export DB_HOSTNAME=<your_database_host>
+    export DB_PORT=<your_database_port>
+    export DB_NAME=<your_database_name>
+    export DB_USERNAME=<your_database_username>
+    export DB_PASSWORD=<your_database_password>
     ```
 
 2.  **Run Docker Compose**:
