@@ -1,8 +1,7 @@
 name: Main branch deploy workflow
 
 on:
-  # push:
-  pull_request:
+  push:
     branches: [main]
 
 jobs:
