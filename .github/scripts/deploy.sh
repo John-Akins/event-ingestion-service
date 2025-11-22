@@ -16,8 +16,6 @@ ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts
 # Copy docker-compose.yml to EC2 instance
 scp -i ~/.ssh/id_rsa docker-compose.yml ec2-user@$EC2_IP:~/
 
-echo "🚀 Deploying $DOCKER_IMAGE to $EC2_IP (RDS: $RDS_ENDPOINT, Region: $TF_VAR_REGION)"
-
 # SSH access to EC2 instance
 ssh -i ~/.ssh/id_rsa ec2-user@$EC2_IP /bin/bash << EOF
   echo "Connected to EC2 instance"
@@ -46,27 +44,30 @@ AWS_RDS_PASSWORD=$AWS_RDS_PASSWORD
 AWS_RDS_DB_NAME=$AWS_RDS_DB_NAME
 AWS_RDS_PORT=$AWS_RDS_PORT"
 
-  # Pull the latest Docker image
-  docker pull $DOCKER_IMAGE
+  # Run docker commands with the docker group.
+  echo "Pulling the latest Docker image..."
+  sg docker -c "docker pull $DOCKER_IMAGE"
 
-  # Stop and remove existing containers (for clean deployment)
+  # Stop and remove existing containers
   echo "Stopping existing containers..."
-  docker-compose down || true
+  sg docker -c "docker-compose down || true"
 
   # Create logs directory with proper permissions for container access
-  mkdir -p /logs
+  sudo mkdir -p /logs
   sudo chmod a+w /logs
 
   # Run container and validate deployment
-  docker-compose up -d
+  echo "Starting the application..."
+  sg docker -c "docker-compose up -d"
 
   # Quick health check with timeout and error handling
   sleep 30
   echo "Performing health check..."
 
   end_time=$((SECONDS+120))
+  HEALTH_STATUS=0
   while [ $SECONDS -lt $end_time ]; do
-    HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health || true)
+    HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4040/manage/health || echo "0")
     if [ "$HEALTH_STATUS" -eq 200 ]; then
       echo "✅ Health check passed with status $HEALTH_STATUS"
       break
@@ -79,7 +80,7 @@ AWS_RDS_PORT=$AWS_RDS_PORT"
     echo "❌ Deployment failed: Health check timed out after 2 minutes."
     echo "Final health status: $HEALTH_STATUS"
     echo "Container logs:"
-    docker-compose logs --tail=50 app
+    sg docker -c "docker-compose logs --tail=50 app"
     exit 1
   fi
 
