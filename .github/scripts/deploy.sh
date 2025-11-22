@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 # Validate required env variables
-readonly required_vars=(EC2_IP DOCKER_IMAGE RDS_ENDPOINT AWS_RDS_USERNAME AWS_RDS_PASSWORD AWS_RDS_DB_NAME AWS_RDS_PORT TF_VAR_REGION)
+readonly required_vars=(EC2_IP DOCKER_IMAGE RDS_ENDPOINT DB_USERNAME DB_PASSWORD DB_NAME DB_PORT TF_VAR_REGION)
 
 for var in "${required_vars[@]}"; do
   [[ -z "${!var}" ]] && { echo "❌ $var is required but not set"; exit 1; }
@@ -38,11 +38,11 @@ ssh -i ~/.ssh/id_rsa ec2-user@$EC2_IP /bin/bash << EOF
   cat > .env <<< "
 SPRING_PROFILES_ACTIVE=prod
 DOCKER_IMAGE=$DOCKER_IMAGE
-AWS_RDS_HOSTNAME=$RDS_ENDPOINT
-AWS_RDS_USERNAME=$AWS_RDS_USERNAME
-AWS_RDS_PASSWORD=$AWS_RDS_PASSWORD
-AWS_RDS_DB_NAME=$AWS_RDS_DB_NAME
-AWS_RDS_PORT=$AWS_RDS_PORT"
+DB_HOSTNAME=$RDS_ENDPOINT
+DB_USERNAME=$DB_USERNAME
+DB_PASSWORD=$DB_PASSWORD
+DB_NAME=$DB_NAME
+DB_PORT=$DB_PORT"
 
   # Run docker commands with the docker group.
   echo "Pulling the latest Docker image..."
