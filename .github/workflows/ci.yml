@@ -2,7 +2,6 @@ name: CI Pipeline
 
 on:
     pull_request:
-    # push:
         branches: [main]
 
 jobs:
@@ -23,6 +22,9 @@ jobs:
 
         - name: Build with Maven
           run: mvn clean install -DskipTests
+
+        - name: Check code style with Checkstyle
+          run: mvn checkstyle:checkstyle
 
         - name: Run tests
           run: mvn test

@@ -62,3 +62,48 @@ To test the event ingestion endpoint, you can use the sample request data provid
 7.  **Send Request**: Click the `Send` button to make the request.
 
 For a detailed description of the API, including all endpoints, request bodies, and response schemas, please refer to the `openapi.yml` file.
+
+## Code Style and Linting
+
+This project uses the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html). To ensure consistency, we use Checkstyle for automated linting, which displays style violations directly in your IDE. Once configured, Checkstyle runs automatically during development, highlighting issues in the editor for immediate correction.
+
+### Setting up in your Editor
+
+Here are the instructions for setting up linting in popular editors.
+
+#### IntelliJ IDEA
+
+1.  **Install Plugins:** Go to `File -> Settings -> Plugins`. Search for and install "Checkstyle-IDEA" and "google-java-format" (by Google) from the Marketplace.
+
+2.  **Configure Code Style (Formatting):** After installing google-java-format plugin, restart IDEA. The plugin will automatically handle formatting to Google Java Style.
+
+3.  **Configure Checkstyle:**
+    *   Go to `File -> Settings -> Tools -> Checkstyle`.
+    *   In the "Configuration File" panel, click the `+` icon to add a new configuration.
+    *   Set the "Description" to "Google Java Style".
+    *   Click "Next" and "Finish".
+
+4.  **Activate Profile:** Make sure the "Google Java Style" profile is checked in the list of configuration files.
+
+5.  **View Errors:** You can now run Checkstyle by opening the "Checkstyle" tool window (`View -> Tool Windows -> Checkstyle`) and running a scan. Errors will also be highlighted in the editor.
+
+#### Visual Studio Code
+
+1.  **Install Extension:** Install the [Checkstyle for Java](https://marketplace.visualstudio.com/items?itemName=shengchen.vscode-checkstyle) extension from the Visual Studio Marketplace.
+
+2.  **Configure Checkstyle:** Open your VS Code settings (`settings.json`). You can do this by pressing `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and typing "Open User Settings (JSON)". Add the following configuration:
+
+    ```json
+    "java.checkstyle.configuration": "google_checks.xml",
+    "java.checkstyle.version": "10.12.0" // Use a recent version of Checkstyle
+    ```
+    *Note: You may need to adjust the Checkstyle version. The extension will prompt you if a different version is needed.*
+
+3.  **Configure Code Formatting:** To enable automatic code formatting to Google Java Style, add the following to your VS Code settings (`settings.json`):
+
+    ```json
+    "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/intellij-java-google-style.xml",
+    "java.format.settings.profile": "GoogleStyle"
+    ```
+
+4.  **Enable Checkstyle and Formatting:** After configuring, you might need to reload VS Code. Checkstyle will now run automatically on your Java files, and formatting will be applied when you save files or format on demand.

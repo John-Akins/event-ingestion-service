@@ -132,6 +132,30 @@
 				<artifactId>maven-site-plugin</artifactId>
 				<version>4.0.0-M16</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<configLocation>google_checks.xml</configLocation>
+					<encoding>UTF-8</encoding>
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<linkXRef>false</linkXRef>
+					<violationSeverity>warning</violationSeverity>
+					<maxAllowedViolations>5</maxAllowedViolations>
+				</configuration>
+				<executions>
+					<execution>
+						<?m2e execute onConfiguration,onIncremental?>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
