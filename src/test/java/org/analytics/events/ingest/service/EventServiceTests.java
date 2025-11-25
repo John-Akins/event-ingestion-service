@@ -1,6 +1,6 @@
 package org.analytics.events.ingest.service;
 
-import org.analytics.events.ingest.dto.EventRequestDTO;
+import org.analytics.events.ingest.dto.EventRequest;
 import org.analytics.events.ingest.mapper.EventMapper;
 import org.analytics.events.ingest.model.BaseEvent;
 import org.analytics.events.ingest.model.EventType;
@@ -33,15 +33,15 @@ class EventServiceTests {
     @InjectMocks
     private EventService service;
 
-    private EventRequestDTO validEventRequest;
+    private EventRequest validEventRequest;
     private BaseEvent mappedEvent;
 
     @BeforeEach
     void setUp() {
-        validEventRequest = new EventRequestDTO(
+        validEventRequest = new EventRequest(
                 EventType.PAGE_VIEW,
                 "test-hash",
-                new EventRequestDTO.ClientInfoDTO("Mozilla", "127.0.0.1", "en-US", "UTC", "web"),
+                new EventRequest.ClientInformation("Mozilla", "127.0.0.1", "en-US", "UTC", "web"),
                 Map.of("page", "/home")
         );
 
@@ -52,13 +52,13 @@ class EventServiceTests {
                 .build();
 
         // Configure mapper to return mapped event for any EventRequestDTO
-        lenient().when(mapper.toEvent(any(EventRequestDTO.class))).thenReturn(mappedEvent);
+        lenient().when(mapper.toEvent(any(EventRequest.class))).thenReturn(mappedEvent);
     }
 
     @Test
     void shouldProcessSingleEvent() {
         // Given
-        List<EventRequestDTO> events = List.of(validEventRequest);
+        List<EventRequest> events = List.of(validEventRequest);
 
         // When
         service.processEvents(events);
@@ -71,26 +71,26 @@ class EventServiceTests {
     @Test
     void shouldProcessMultipleEvents() {
         // Given
-        EventRequestDTO event2 = new EventRequestDTO(
+        EventRequest event2 = new EventRequest(
                 EventType.USER_ACTION,
                 "hash2",
                 null,
                 Map.of("action", "click")
         );
-        List<EventRequestDTO> events = List.of(validEventRequest, event2);
+        List<EventRequest> events = List.of(validEventRequest, event2);
 
         // When
         service.processEvents(events);
 
         // Then
-        verify(mapper, times(2)).toEvent(any(EventRequestDTO.class));
+        verify(mapper, times(2)).toEvent(any(EventRequest.class));
         verify(repository, times(2)).save(any(BaseEvent.class));
     }
 
     @Test
     void shouldHandleEmptyEventList() {
         // Given
-        List<EventRequestDTO> events = List.of();
+        List<EventRequest> events = List.of();
 
         // When
         service.processEvents(events);
@@ -103,10 +103,10 @@ class EventServiceTests {
     @Test
     void shouldHandleEventWithComplexData() {
         // Given
-        EventRequestDTO complexEvent = new EventRequestDTO(
+        EventRequest complexEvent = new EventRequest(
                 EventType.ERROR,
                 "error-hash",
-                new EventRequestDTO.ClientInfoDTO("Chrome", "192.168.1.1", "de-DE", "CET", "desktop"),
+                new EventRequest.ClientInformation("Chrome", "192.168.1.1", "de-DE", "CET", "desktop"),
                 Map.of(
                         "errorMessage", "NullPointerException",
                         "stackTrace", "at com.example.Service.doSomething(Service.java:42)",
@@ -114,7 +114,7 @@ class EventServiceTests {
                         "timestamp", System.currentTimeMillis()
                 )
         );
-        List<EventRequestDTO> events = List.of(complexEvent);
+        List<EventRequest> events = List.of(complexEvent);
 
         // When
         service.processEvents(events);
@@ -127,13 +127,13 @@ class EventServiceTests {
     @Test
     void shouldHandleNullUserHash() {
         // Given
-        EventRequestDTO eventWithNullHash = new EventRequestDTO(
+        EventRequest eventWithNullHash = new EventRequest(
                 EventType.API_CALL,
                 null,
                 null,
                 Map.of("endpoint", "/api/users")
         );
-        List<EventRequestDTO> events = List.of(eventWithNullHash);
+        List<EventRequest> events = List.of(eventWithNullHash);
 
         // When
         service.processEvents(events);
@@ -147,24 +147,24 @@ class EventServiceTests {
     void shouldHandleAllEventTypes() {
         // Given - Use valid hash format that passes @ValidHash validation
         String validHash = "e9c0494b2b14ca2b48258c05dd6c4c14";
-        List<EventRequestDTO> eventsWithAllTypes = List.of(
-                new EventRequestDTO(EventType.PAGE_VIEW, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.USER_ACTION, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.ERROR, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.FORM_SUBMIT, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.API_CALL, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.PERFORMANCE, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.FEATURE_USAGE, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.USER_PREFERENCE, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.SEARCH, validHash, null, Map.of()),
-                new EventRequestDTO(EventType.AUTHENTICATION, validHash, null, Map.of())
+        List<EventRequest> eventsWithAllTypes = List.of(
+                new EventRequest(EventType.PAGE_VIEW, validHash, null, Map.of()),
+                new EventRequest(EventType.USER_ACTION, validHash, null, Map.of()),
+                new EventRequest(EventType.ERROR, validHash, null, Map.of()),
+                new EventRequest(EventType.FORM_SUBMIT, validHash, null, Map.of()),
+                new EventRequest(EventType.API_CALL, validHash, null, Map.of()),
+                new EventRequest(EventType.PERFORMANCE, validHash, null, Map.of()),
+                new EventRequest(EventType.FEATURE_USAGE, validHash, null, Map.of()),
+                new EventRequest(EventType.USER_PREFERENCE, validHash, null, Map.of()),
+                new EventRequest(EventType.SEARCH, validHash, null, Map.of()),
+                new EventRequest(EventType.AUTHENTICATION, validHash, null, Map.of())
         );
 
         // When
         service.processEvents(eventsWithAllTypes);
 
         // Then
-        verify(mapper, times(10)).toEvent(any(EventRequestDTO.class));
+        verify(mapper, times(10)).toEvent(any(EventRequest.class));
         verify(repository, times(10)).save(any(BaseEvent.class));
     }
 }
